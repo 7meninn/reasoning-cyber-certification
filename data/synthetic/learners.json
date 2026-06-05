@@ -1,0 +1,61 @@
+[
+  {
+    "learner_id": "L-1001",
+    "employee_id": "EMP-001",
+    "role_current": "Helpdesk Analyst",
+    "role_target": "SOC Analyst",
+    "experience_level": "Entry",
+    "completed_certifications": [],
+    "preferred_learning_style": "Scenario-first with short reading blocks",
+    "available_focus_hours_per_week": 6,
+    "constraints": [
+      "Meeting-heavy schedule",
+      "Needs beginner-friendly KQL interpretation",
+      "No production tenant access in demo"
+    ],
+    "skills_self_rating": {
+      "networking": 3,
+      "security_concepts": 2,
+      "incident_response": 1,
+      "kql": 0,
+      "cloud_security": 1,
+      "communication": 4
+    }
+  },
+  {
+    "learner_id": "L-1002",
+    "employee_id": "EMP-002",
+    "role_current": "Cloud Administrator",
+    "role_target": "Cloud Security Engineer",
+    "experience_level": "Intermediate",
+    "completed_certifications": ["AZ-104"],
+    "preferred_learning_style": "Hands-on labs",
+    "available_focus_hours_per_week": 8,
+    "constraints": ["Prefers afternoon study blocks"],
+    "skills_self_rating": {
+      "azure_identity": 4,
+      "defender_for_cloud": 2,
+      "sentinel": 1,
+      "incident_response": 2
+    }
+  },
+  {
+    "learner_id": "L-1003",
+    "employee_id": "EMP-003",
+    "role_current": "IT Support Specialist",
+    "role_target": "Entry Cybersecurity Analyst",
+    "experience_level": "Entry",
+    "completed_certifications": [],
+    "preferred_learning_style": "Plain-language explanations",
+    "available_focus_hours_per_week": 4,
+    "constraints": ["Career switcher", "Needs foundation path"],
+    "skills_self_rating": {
+      "networking": 2,
+      "security_concepts": 1,
+      "incident_response": 0,
+      "kql": 0,
+      "communication": 3
+    }
+  }
+]
+

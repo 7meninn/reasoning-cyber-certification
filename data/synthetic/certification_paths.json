@@ -1,0 +1,18 @@
+[
+  {
+    "path_id": "SOC-ANALYST-MVP",
+    "target_role": "SOC Analyst",
+    "recommended_sequence": [
+      "CompTIA Security+ foundation",
+      "Microsoft SC-200-oriented security operations readiness"
+    ],
+    "secondary_options": ["ISC2 CC", "CompTIA CySA+", "Microsoft AZ-500", "CompTIA PenTest+"],
+    "caveats": [
+      "CySA+ V4 launches after the hackathon submission deadline.",
+      "AZ-500 should be shown with retirement caveat.",
+      "PenTest+ content must stay authorized and defensive."
+    ],
+    "synthetic_data_notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data."
+  }
+]
+

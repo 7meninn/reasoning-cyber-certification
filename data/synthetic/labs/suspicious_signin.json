@@ -1,0 +1,30 @@
+{
+  "lab_id": "LAB-SOC-001",
+  "title": "Suspicious sign-in investigation",
+  "synthetic_data_notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data.",
+  "reserved_ip_ranges": ["203.0.113.0/24", "198.51.100.0/24"],
+  "fictional_account_domain": "example.com",
+  "events": [
+    {
+      "timestamp": "2026-06-05T09:12:04Z",
+      "user": "alex.chen@example.com",
+      "ip": "203.0.113.42",
+      "result": "Failure",
+      "reason": "InvalidPassword"
+    },
+    {
+      "timestamp": "2026-06-05T09:26:11Z",
+      "user": "alex.chen@example.com",
+      "ip": "198.51.100.17",
+      "result": "Success",
+      "location": "Unfamiliar"
+    },
+    {
+      "timestamp": "2026-06-05T09:31:20Z",
+      "user": "alex.chen@example.com",
+      "action": "New-InboxRule",
+      "rule": "Forward-Finance"
+    }
+  ]
+}
+

@@ -1,0 +1,21 @@
+[
+  {
+    "team_id": "TEAM-SOC-A",
+    "target_certification": "SC-200-oriented SOC readiness",
+    "learner_count": 6,
+    "average_readiness_score": 68,
+    "readiness_distribution": {
+      "GO": 1,
+      "CONDITIONAL": 4,
+      "NOT_YET": 1
+    },
+    "top_skill_gaps": [
+      "KQL and log interpretation",
+      "Incident containment sequence",
+      "Evidence preservation"
+    ],
+    "capacity_risk": "Medium",
+    "synthetic_data_notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data."
+  }
+]
+

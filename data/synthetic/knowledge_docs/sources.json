@@ -1,0 +1,88 @@
+[
+  {
+    "source_id": "OFFICIAL-SC200",
+    "title": "Microsoft SC-200 certification overview",
+    "source_type": "official_public_summary",
+    "url": "https://learn.microsoft.com/en-us/credentials/certifications/security-operations-analyst/",
+    "summary": "Public source summary: SC-200 is a Microsoft security operations certification relevant to SOC analyst work.",
+    "excerpt": "SC-200 is positioned around Microsoft security operations analysis, including threat mitigation with Microsoft security tools.",
+    "tags": ["sc-200", "soc", "security operations", "incident response", "kql"],
+    "metadata": {"certification": "SC-200"}
+  },
+  {
+    "source_id": "OFFICIAL-SECURITYPLUS",
+    "title": "CompTIA Security+ public certification page",
+    "source_type": "official_public_summary",
+    "url": "https://www.comptia.org/en/certifications/security/",
+    "summary": "Public source summary: Security+ is a broad cybersecurity foundation certification for core security concepts.",
+    "excerpt": "Security+ is a broad cybersecurity foundation certification covering core security concepts and operations.",
+    "tags": ["security+", "foundation", "entry", "security concepts"],
+    "metadata": {"certification": "Security+"}
+  },
+  {
+    "source_id": "SYN-SOC-GUIDE",
+    "title": "Synthetic SOC Analyst Enablement Guide",
+    "source_type": "synthetic_internal",
+    "url": null,
+    "summary": "This synthetic guide maps helpdesk-to-SOC learners to alert triage, incident response, KQL interpretation, and reporting practice.",
+    "excerpt": "This synthetic guide maps helpdesk-to-SOC learners to alert triage, incident response, KQL interpretation, and reporting practice.",
+    "tags": ["soc", "alert triage", "incident response", "kql", "reporting"],
+    "metadata": {
+      "synthetic": "true",
+      "notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data."
+    }
+  },
+  {
+    "source_id": "SYN-TRIAGE-PLAYBOOK",
+    "title": "Synthetic Incident Triage Playbook",
+    "source_type": "synthetic_internal",
+    "url": null,
+    "summary": "The playbook teaches defensive triage using synthetic alerts, evidence preservation, and escalation decisions.",
+    "excerpt": "Use synthetic alerts to practice severity, scope, containment, evidence preservation, and escalation decisions.",
+    "tags": ["triage", "incident response", "containment", "evidence"],
+    "metadata": {
+      "synthetic": "true",
+      "notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data."
+    }
+  },
+  {
+    "source_id": "SYN-WORK-CAPACITY",
+    "title": "Synthetic Team Learning Capacity Report",
+    "source_type": "synthetic_policy",
+    "url": null,
+    "summary": "The report constrains learning plans around meeting load, focus windows, and short scenario checkpoints.",
+    "excerpt": "Learners with meeting-heavy weeks should keep planned study blocks within available focus hours and use short scenario checkpoints.",
+    "tags": ["capacity", "work signals", "focus hours", "study plan"],
+    "metadata": {
+      "synthetic": "true",
+      "notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data."
+    }
+  },
+  {
+    "source_id": "SYN-MANAGER-BRIEF",
+    "title": "Synthetic Manager Readiness Dashboard Brief",
+    "source_type": "synthetic_policy",
+    "url": null,
+    "summary": "Manager reporting should show aggregate readiness, capacity risk, and coaching actions without exposing personal details.",
+    "excerpt": "Manager summaries should aggregate readiness and capacity patterns without exposing private learner weaknesses.",
+    "tags": ["manager", "privacy", "readiness", "capacity"],
+    "metadata": {
+      "synthetic": "true",
+      "notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data."
+    }
+  },
+  {
+    "source_id": "SYN-SIGNIN-LAB",
+    "title": "Synthetic Suspicious Sign-in Lab",
+    "source_type": "synthetic_lab",
+    "url": null,
+    "summary": "A defensive lab using documentation-reserved IP ranges and fictional accounts to practice suspicious sign-in triage.",
+    "excerpt": "The lab uses documentation-reserved IP addresses and fictional identities to simulate suspicious sign-in triage.",
+    "tags": ["lab", "signin", "soc", "identity", "triage"],
+    "metadata": {
+      "synthetic": "true",
+      "notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data."
+    }
+  }
+]
+

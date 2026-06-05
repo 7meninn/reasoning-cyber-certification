@@ -1,0 +1,11 @@
+[
+  {
+    "team_id": "TEAM-SOC-A",
+    "name": "Synthetic SOC Readiness Cohort A",
+    "manager_id": "MGR-001",
+    "learner_ids": ["L-1001", "L-1003", "L-1004", "L-1005", "L-1006", "L-1007"],
+    "target_certification": "SC-200-oriented SOC readiness",
+    "synthetic_data_notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data."
+  }
+]
+
