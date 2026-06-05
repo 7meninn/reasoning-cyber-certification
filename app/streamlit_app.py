@@ -71,16 +71,67 @@ else:
     result = get_or_run_demo(selected_learner, request_text)
 
 learner = result.learner
+trace = result.trace
+
+st.title("SOC Readiness Command Center")
+st.caption("Phase 2 deterministic multi-agent mock demo. All data, users, teams, logs, and incidents are synthetic.")
+
+if result.safety_response is not None:
+    st.error(result.safety_response.message)
+    st.subheader("Safe Alternatives")
+    for alternative in result.safety_response.safe_alternatives:
+        st.write(f"- {alternative}")
+    with st.expander("Agent Trace", expanded=True):
+        st.json(trace.model_dump(mode="json"))
+    st.stop()
+
+if result.route.route == "manager_insights":
+    manager = result.manager_insight
+    if manager is None:
+        st.error("Manager route did not return manager insight.")
+        st.stop()
+    summary_cols = st.columns(4)
+    summary_cols[0].metric("Route", "Manager")
+    summary_cols[1].metric("Team", manager.team_id)
+    summary_cols[2].metric("Capacity risk", manager.capacity_risk)
+    summary_cols[3].metric("Trace latency", f"{trace.latency_ms} ms")
+    st.subheader("Manager Dashboard")
+    st.write(manager.summary)
+    st.dataframe(
+        [{"Verdict": key, "Learners": value} for key, value in manager.readiness_distribution.items()],
+        hide_index=True,
+        use_container_width=True,
+    )
+    st.subheader("Top Skill Gaps")
+    for gap in manager.top_skill_gaps:
+        st.write(f"- {gap}")
+    st.subheader("Recommended Actions")
+    for action in manager.recommended_actions:
+        st.write(f"- {action}")
+    st.caption(manager.privacy_note)
+    with st.expander("Agent Trace", expanded=False):
+        st.json(trace.model_dump(mode="json"))
+    st.stop()
+
+if (
+    result.certification_path is None
+    or result.skill_gap_report is None
+    or result.study_plan is None
+    or result.scenario_lab is None
+    or result.assessment_result is None
+    or result.manager_insight is None
+):
+    st.error("Workflow did not return the complete learner demo path.")
+    with st.expander("Agent Trace", expanded=True):
+        st.json(trace.model_dump(mode="json"))
+    st.stop()
+
 path = result.certification_path
 gaps = result.skill_gap_report
 plan = result.study_plan
 lab = result.scenario_lab
 assessment = result.assessment_result
 manager = result.manager_insight
-trace = result.trace
-
-st.title("SOC Readiness Command Center")
-st.caption("Phase 1 deterministic mock demo. All data, users, teams, logs, and incidents are synthetic.")
 
 summary_cols = st.columns(4)
 summary_cols[0].metric("Learner", learner.learner_id)
@@ -249,4 +300,3 @@ with tabs[6]:
 
 with st.expander("Agent Trace", expanded=False):
     st.json(trace.model_dump(mode="json"))
-

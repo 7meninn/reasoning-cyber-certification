@@ -215,6 +215,13 @@ class GuardrailVerdict(StrictModel):
     checks: dict[str, bool]
 
 
+class SafetyResponse(StrictModel):
+    route: Literal["safety_refusal"] = "safety_refusal"
+    message: str
+    safe_alternatives: list[str]
+    guardrail_verdict: GuardrailVerdict
+
+
 class ToolCall(StrictModel):
     tool_name: str
     input_summary: str
@@ -231,6 +238,12 @@ class AgentStep(StrictModel):
     citations: list[Citation] = Field(default_factory=list)
     guardrail_verdicts: list[GuardrailVerdict] = Field(default_factory=list)
     retrieval_mode: Literal["foundry_iq", "azure_ai_search", "local_mock"] | None = None
+    status: Literal["success", "repaired", "fallback", "blocked"] = "success"
+    attempt_count: int = Field(default=1, ge=1)
+    repair_attempted: bool = False
+    fallback_used: bool = False
+    validation_error: str | None = None
+    repair_notes: str | None = None
 
 
 class RunTrace(StrictModel):
@@ -248,12 +261,12 @@ class RunTrace(StrictModel):
 class WorkflowResult(StrictModel):
     learner: LearnerProfile
     route: RouteDecision
-    evidence: EvidenceBundle
-    certification_path: CertificationPath
-    skill_gap_report: SkillGapReport
-    study_plan: StudyPlan
-    scenario_lab: ScenarioLab
-    assessment_result: AssessmentResult
-    manager_insight: ManagerInsight
+    evidence: EvidenceBundle | None = None
+    certification_path: CertificationPath | None = None
+    skill_gap_report: SkillGapReport | None = None
+    study_plan: StudyPlan | None = None
+    scenario_lab: ScenarioLab | None = None
+    assessment_result: AssessmentResult | None = None
+    manager_insight: ManagerInsight | None = None
+    safety_response: SafetyResponse | None = None
     trace: RunTrace
-

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from textwrap import dedent
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
 
@@ -15,6 +16,7 @@ from .schemas import (
     ManagerInsight,
     RouteDecision,
     RunTrace,
+    SafetyResponse,
     ScenarioLab,
     SkillGapReport,
     StudyPlan,
@@ -41,7 +43,7 @@ class DeterministicMockAgent(Generic[T]):
     output_schema: type[T]
     latency_ms: int
 
-    def raw_response(self) -> str:
+    def raw_response(self, context: Any | None = None) -> str:
         raise NotImplementedError
 
     def run(self, trace: RunTrace, input_summary: str) -> AgentResult[T]:
@@ -74,12 +76,46 @@ class MockIntakeRouterAgent(DeterministicMockAgent[RouteDecision]):
     output_schema = RouteDecision
     latency_ms = 342
 
-    def raw_response(self) -> str:
+    def raw_response(self, context: Any | None = None) -> str:
+        request_text = getattr(context, "request_text", "") if context is not None else ""
+        input_guardrail = getattr(context, "input_guardrail", None) if context is not None else None
+        learner_id = getattr(getattr(context, "learner", None), "learner_id", "L-1001")
+
+        if input_guardrail is not None and input_guardrail.verdict == "blocked":
+            issues = '", "'.join(input_guardrail.issues)
+            return dedent(
+                f"""
+                {{
+                  "route": "safety_refusal",
+                  "learner_id": "{learner_id}",
+                  "goal": "Refuse unsafe request and redirect to defensive synthetic learning.",
+                  "risk_flags": ["{issues}"],
+                  "next_agents": ["Safety Refusal Agent", "Verifier and Safety Agent"],
+                  "confidence": 0.99
+                }}
+                """
+            ).strip()
+
+        manager_terms = ("manager", "team", "dashboard", "capacity", "readiness distribution")
+        if any(term in request_text.lower() for term in manager_terms):
+            return dedent(
+                f"""
+                {{
+                  "route": "manager_insights",
+                  "learner_id": "{learner_id}",
+                  "goal": "Produce aggregate team readiness and capacity insight.",
+                  "risk_flags": [],
+                  "next_agents": ["Knowledge Curator Agent", "Manager Insights Agent", "Verifier and Safety Agent"],
+                  "confidence": 0.96
+                }}
+                """
+            ).strip()
+
         return dedent(
-            """
-            {
+            f"""
+            {{
               "route": "soc_readiness_demo",
-              "learner_id": "L-1001",
+              "learner_id": "{learner_id}",
               "goal": "Prepare a helpdesk analyst for SOC analyst readiness in 4 weeks.",
               "risk_flags": [],
               "next_agents": [
@@ -93,7 +129,7 @@ class MockIntakeRouterAgent(DeterministicMockAgent[RouteDecision]):
                 "Verifier and Safety Agent"
               ],
               "confidence": 0.97
-            }
+            }}
             """
         ).strip()
 
@@ -807,3 +843,43 @@ class MockVerifierSafetyAgent(DeterministicMockAgent[GuardrailVerdict]):
             """
         ).strip()
 
+
+class MockSafetyRefusalAgent(DeterministicMockAgent[SafetyResponse]):
+    name = "Safety Refusal Agent"
+    output_schema = SafetyResponse
+    latency_ms = 426
+
+    def raw_response(self, context: Any | None = None) -> str:
+        guardrail = getattr(context, "input_guardrail", None) if context is not None else None
+        issues = getattr(guardrail, "issues", [])
+        checks = getattr(
+            guardrail,
+            "checks",
+            {
+                "no_real_pii": True,
+                "no_secrets": True,
+                "no_exam_dump_request": True,
+                "defensive_cyber_intent": True,
+            },
+        )
+        payload = {
+            "route": "safety_refusal",
+            "message": (
+                "I cannot help with that request. This demo only supports defensive, "
+                "synthetic cybersecurity learning and certification readiness."
+            ),
+            "safe_alternatives": [
+                "Practice the suspicious sign-in investigation lab using synthetic artifacts.",
+                "Create a defensive incident-response study plan.",
+                "Review how to document and remediate a vulnerability safely.",
+            ],
+            "guardrail_verdict": {
+                "verdict": "blocked",
+                "issues": issues,
+                "rewrite_instructions": (
+                    "Refuse briefly and redirect to defensive, synthetic learning."
+                ),
+                "checks": checks,
+            },
+        }
+        return json.dumps(payload, indent=2)
