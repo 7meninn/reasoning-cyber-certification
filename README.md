@@ -4,7 +4,7 @@
 
 Multi-agent SOC readiness demo for the Agents League Reasoning track.
 
-Phase 2 implements a deterministic local multi-agent orchestration skeleton for the Agents League Reasoning track. It runs a SOC Analyst readiness demo in `local_mock` mode with no Azure, Foundry, or Foundry IQ credentials.
+Phase 3 adds an optional Microsoft Foundry-backed model mode while preserving the deterministic local demo. By default the app runs in `mock` mode with `local_mock` retrieval and no Azure credentials. When Foundry configuration is present, selected reasoning agents call a configured model deployment, return raw JSON, and validate through the same Pydantic schemas.
 
 ## Demo Story
 
@@ -16,10 +16,12 @@ Synthetic learner `L-1001` is a helpdesk analyst who wants to become a SOC analy
 - Deterministic mock agents that return raw JSON strings.
 - Pydantic validation for every agent handoff, using the same parsing path intended for later LLM responses.
 - Explicit workflow state, route branches, agent registry, schema repair, and safe fallback behavior.
+- Optional `APP_MODE=foundry` execution for model-backed certification path, gap, plan, assessment, and manager-insight agents.
+- Foundry calls isolated behind one adapter using Microsoft Entra ID and a Foundry project endpoint.
 - Synthetic data only: learners, teams, work signals, knowledge summaries, and SOC lab artifacts.
 - Local mock retrieval adapter with explicit `retrieval_mode = local_mock`.
 - Reset Demo button in the sidebar.
-- Agent Trace expander with raw JSON responses, parsed outputs, citations, guardrail verdicts, repair/fallback metadata, and realistic latency values.
+- Agent Trace expander with raw JSON responses, parsed outputs, citations, guardrail verdicts, model metadata, repair/fallback metadata, and realistic latency values.
 
 ## Judging Alignment
 
@@ -28,8 +30,8 @@ Synthetic learner `L-1001` is a helpdesk analyst who wants to become a SOC analy
 | Accuracy and relevance | SOC Analyst readiness flow with cited Security+ and SC-200-oriented recommendations |
 | Reasoning | Routed multi-agent path -> gap -> plan -> lab -> assessment -> remediation workflow |
 | Creativity | Cybersecurity readiness command center with a suspicious sign-in lab |
-| UX and presentation | Streamlit demo, reset button, learner and manager views, visible trace drawer |
-| Reliability and safety | Pydantic validation, tests, guardrails, synthetic-only data, local fallback mode |
+| UX and presentation | Streamlit demo, reset button, learner and manager views, visible trace drawer, mode badges |
+| Reliability and safety | Pydantic validation, tests, guardrails, synthetic-only data, Foundry-to-mock fallback |
 
 ## Run The Demo
 
@@ -51,6 +53,20 @@ For a background launch:
 .\scripts\run_demo.ps1 -Background
 ```
 
+## Optional Foundry Mode
+
+Mock mode is the recommended submission-safe default. To try model-backed agents locally, sign in with Azure CLI, set the Foundry project endpoint and model deployment, then run the demo:
+
+```powershell
+az login
+$env:APP_MODE="foundry"
+$env:AZURE_AI_PROJECT_ENDPOINT="https://<resource>.services.ai.azure.com/api/projects/<project>"
+$env:AZURE_AI_MODEL_DEPLOYMENT="<deployment-name>"
+.\scripts\run_demo.ps1
+```
+
+If Foundry config or credentials are missing, the app falls back to deterministic mock mode and records the fallback reason in the trace. Phase 3 still uses `retrieval_mode = local_mock`; Foundry IQ is not claimed yet.
+
 ## Run Tests
 
 ```powershell
@@ -62,14 +78,14 @@ The test runner installs only backend test dependencies. The demo runner install
 Current local result:
 
 ```text
-19 passed
+31 passed
 ```
 
-## Phase 2 Design Notes
+## Phase 3 Design Notes
 
 Mock agents intentionally return exact JSON strings, not Python dictionaries. The workflow parses those strings through Pydantic models before using the outputs. This proves schema validation, parsing errors, and trace capture before real LLM calls are introduced.
 
-The app is honest about grounding: Phase 2 uses local mock retrieval and does not claim live Foundry IQ integration. Later phases can replace the retrieval adapter and mock agent raw JSON source without changing the workflow contracts.
+Foundry-backed agents use the same executor contract: raw JSON string first, then Pydantic validation, repair attempt, and safe fallback. The app is honest about grounding: Phase 3 uses local mock retrieval and does not claim live Foundry IQ integration. Later phases can replace the retrieval adapter without changing the workflow contracts.
 
 ## Repository Map
 

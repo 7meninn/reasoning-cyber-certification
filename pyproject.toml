@@ -1,15 +1,17 @@
 [project]
 name = "reasoning-cyber-certification"
 version = "0.1.0"
-description = "Phase 1 deterministic local skeleton for the Agents League Reasoning track."
+description = "Multi-agent SOC readiness demo with deterministic mock and optional Foundry execution modes."
 requires-python = ">=3.11"
 dependencies = [
   "pydantic>=2.10,<3",
-  "streamlit>=1.41,<2"
+  "streamlit>=1.41,<2",
+  "azure-ai-projects>=2.0.0,<3",
+  "azure-identity>=1.17,<2",
+  "openai>=1.42,<3"
 ]
 
 [tool.pytest.ini_options]
 pythonpath = ["app/src"]
 testpaths = ["app/tests"]
 addopts = "-q"
-

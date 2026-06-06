@@ -12,6 +12,9 @@ from ..agents import (
     MockStudyPlanGeneratorAgent,
     MockVerifierSafetyAgent,
 )
+from ..config import RuntimeConfig
+from ..foundry.agents import FoundryBackedAgent, JsonModelClient
+from ..foundry.client import FoundryModelClient
 from .executor import AgentExecutor
 
 
@@ -29,3 +32,43 @@ def build_mock_agent_registry() -> dict[str, AgentExecutor]:
         "safety_refusal": AgentExecutor(MockSafetyRefusalAgent()),
     }
 
+
+def build_foundry_agent_registry(
+    config: RuntimeConfig,
+    model_client: JsonModelClient | None = None,
+) -> dict[str, AgentExecutor]:
+    client = model_client or FoundryModelClient(config)
+    registry = build_mock_agent_registry()
+
+    foundry_agents = {
+        "certification_path_advisor": FoundryBackedAgent(
+            "certification_path_advisor",
+            MockCertificationPathAdvisorAgent(),
+            client,
+        ),
+        "skill_gap_analyst": FoundryBackedAgent(
+            "skill_gap_analyst",
+            MockSkillGapAnalystAgent(),
+            client,
+        ),
+        "study_plan_generator": FoundryBackedAgent(
+            "study_plan_generator",
+            MockStudyPlanGeneratorAgent(),
+            client,
+        ),
+        "assessment": FoundryBackedAgent(
+            "assessment",
+            MockAssessmentAgent(),
+            client,
+        ),
+        "manager_insights": FoundryBackedAgent(
+            "manager_insights",
+            MockManagerInsightsAgent(),
+            client,
+        ),
+    }
+
+    for key, agent in foundry_agents.items():
+        registry[key] = AgentExecutor(agent, repair_json=agent.repair_response)
+
+    return registry

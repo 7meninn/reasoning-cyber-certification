@@ -244,6 +244,12 @@ class AgentStep(StrictModel):
     fallback_used: bool = False
     validation_error: str | None = None
     repair_notes: str | None = None
+    model_mode: Literal["mock", "foundry"] | None = None
+    model_deployment: str | None = None
+    model_request_id: str | None = None
+    model_finish_reason: str | None = None
+    token_usage: dict[str, int] | None = None
+    fallback_reason: str | None = None
 
 
 class RunTrace(StrictModel):
@@ -256,6 +262,10 @@ class RunTrace(StrictModel):
     latency_ms: int = Field(default=0, ge=0)
     retrieval_mode: Literal["foundry_iq", "azure_ai_search", "local_mock"] = "local_mock"
     fallback_mode: bool = True
+    requested_app_mode: Literal["mock", "foundry"] = "mock"
+    model_mode: Literal["mock", "foundry"] = "mock"
+    model_deployment: str | None = None
+    mode_fallback_reason: str | None = None
 
 
 class WorkflowResult(StrictModel):

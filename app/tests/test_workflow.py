@@ -1,4 +1,5 @@
 from cybersecurity_readiness.safety import plan_fits_capacity
+from cybersecurity_readiness.config import load_runtime_config
 from cybersecurity_readiness.workflow import run_demo_workflow
 
 
@@ -38,3 +39,13 @@ def test_study_plan_fits_l1001_capacity():
 
     assert plan_fits_capacity(result.study_plan)
 
+
+def test_foundry_mode_missing_config_falls_back_to_mock_trace():
+    config = load_runtime_config({"APP_MODE": "foundry"})
+
+    result = run_demo_workflow("L-1001", config=config)
+
+    assert result.trace.requested_app_mode == "foundry"
+    assert result.trace.model_mode == "mock"
+    assert result.trace.mode_fallback_reason is not None
+    assert result.assessment_result.overall_readiness == "CONDITIONAL"

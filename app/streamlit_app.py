@@ -10,6 +10,7 @@ SRC_DIR = Path(__file__).resolve().parent / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
+from cybersecurity_readiness.config import RuntimeConfig, load_runtime_config  # noqa: E402
 from cybersecurity_readiness.loader import load_learners  # noqa: E402
 from cybersecurity_readiness.schemas import Citation, WorkflowResult  # noqa: E402
 from cybersecurity_readiness.workflow import DEFAULT_DEMO_REQUEST, run_demo_workflow  # noqa: E402
@@ -31,20 +32,36 @@ def render_citations(citations: list[Citation]) -> None:
             st.markdown(f"- {label}")
 
 
-def get_or_run_demo(learner_id: str, request_text: str) -> WorkflowResult:
+def get_or_run_demo(
+    learner_id: str,
+    request_text: str,
+    config: RuntimeConfig,
+) -> WorkflowResult:
     cached = st.session_state.get("workflow_result")
     cached_learner = st.session_state.get("workflow_learner_id")
     cached_request = st.session_state.get("workflow_request_text")
-    if cached and cached_learner == learner_id and cached_request == request_text:
+    cached_mode = st.session_state.get("workflow_mode_label")
+    if (
+        cached
+        and cached_learner == learner_id
+        and cached_request == request_text
+        and cached_mode == config.mode_label
+    ):
         return cached
 
-    result = run_demo_workflow(learner_id=learner_id, request_text=request_text)
+    result = run_demo_workflow(
+        learner_id=learner_id,
+        request_text=request_text,
+        config=config,
+    )
     st.session_state["workflow_result"] = result
     st.session_state["workflow_learner_id"] = learner_id
     st.session_state["workflow_request_text"] = request_text
+    st.session_state["workflow_mode_label"] = config.mode_label
     return result
 
 
+runtime_config = load_runtime_config()
 learners = load_learners()
 learner_ids = [learner.learner_id for learner in learners]
 
@@ -56,25 +73,38 @@ with st.sidebar:
 
     selected_learner = st.selectbox("Synthetic learner", options=learner_ids, index=0)
     request_text = st.text_area("Demo request", value=DEFAULT_DEMO_REQUEST, height=150)
-    run_clicked = st.button("Run Mock Demo", type="primary", use_container_width=True)
+    run_clicked = st.button("Run Demo", type="primary", use_container_width=True)
     st.divider()
-    st.caption("Mode: local_mock")
-    st.caption("Cloud credentials: not required")
+    st.caption(f"Requested mode: {runtime_config.requested_mode}")
+    st.caption(f"Execution mode: {runtime_config.effective_mode}")
+    st.caption("Retrieval: local_mock")
+    if runtime_config.model_deployment:
+        st.caption(f"Model deployment: {runtime_config.model_deployment}")
+    if runtime_config.fallback_reason:
+        st.warning(runtime_config.fallback_reason)
+    elif runtime_config.foundry_enabled:
+        st.success("Foundry model calls enabled")
+    else:
+        st.caption("Cloud credentials: not required")
 
 if run_clicked or "workflow_result" not in st.session_state:
     try:
-        result = get_or_run_demo(selected_learner, request_text)
+        result = get_or_run_demo(selected_learner, request_text, runtime_config)
     except ValueError as exc:
         st.error(str(exc))
         st.stop()
 else:
-    result = get_or_run_demo(selected_learner, request_text)
+    result = get_or_run_demo(selected_learner, request_text, runtime_config)
 
 learner = result.learner
 trace = result.trace
 
 st.title("SOC Readiness Command Center")
-st.caption("Phase 2 deterministic multi-agent mock demo. All data, users, teams, logs, and incidents are synthetic.")
+st.caption(
+    "Phase 3 multi-agent SOC readiness demo. Mock mode is deterministic; Foundry mode "
+    "uses model-backed JSON agents with local mock retrieval. All data, users, teams, "
+    "logs, and incidents are synthetic."
+)
 
 if result.safety_response is not None:
     st.error(result.safety_response.message)
@@ -138,6 +168,9 @@ summary_cols[0].metric("Learner", learner.learner_id)
 summary_cols[1].metric("Target", learner.role_target)
 summary_cols[2].metric("Readiness", assessment.overall_readiness)
 summary_cols[3].metric("Trace latency", f"{trace.latency_ms} ms")
+st.caption(f"Mode: {trace.requested_app_mode} -> {trace.model_mode}; retrieval: {trace.retrieval_mode}")
+if trace.mode_fallback_reason:
+    st.warning(trace.mode_fallback_reason)
 
 tabs = st.tabs(["Learner", "Path", "Skill Gaps", "Study Plan", "Scenario Lab", "Assessment", "Manager"])
 

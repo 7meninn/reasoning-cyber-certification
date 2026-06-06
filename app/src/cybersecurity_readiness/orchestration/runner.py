@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from ..config import RuntimeConfig, load_runtime_config
 from ..constants import DEFAULT_DEMO_REQUEST
 from ..loader import get_learner
 from ..retrieval import LocalMockRetrievalAdapter
 from ..safety import evaluate_input_safety, validate_citations
 from ..schemas import Citation, RouteDecision, RunTrace, ToolCall, WorkflowResult
 from .executor import AgentExecutor
-from .registry import build_mock_agent_registry
+from .registry import build_foundry_agent_registry, build_mock_agent_registry
 from .state import WorkflowState
 
 
@@ -26,8 +27,15 @@ class OrchestratedWorkflowRunner:
         self,
         registry: dict[str, AgentExecutor] | None = None,
         retrieval_adapter: LocalMockRetrievalAdapter | None = None,
+        config: RuntimeConfig | None = None,
     ) -> None:
-        self.registry = registry or build_mock_agent_registry()
+        self.config = config or load_runtime_config()
+        if registry is not None:
+            self.registry = registry
+        elif self.config.foundry_enabled:
+            self.registry = build_foundry_agent_registry(self.config)
+        else:
+            self.registry = build_mock_agent_registry()
         self.retrieval_adapter = retrieval_adapter or LocalMockRetrievalAdapter()
 
     def run(
@@ -40,10 +48,21 @@ class OrchestratedWorkflowRunner:
             request_text=request_text,
             learner=learner,
             trace=RunTrace(
-                run_id=f"RUN-{learner_id}-MOCK-001",
+                run_id=f"RUN-{learner_id}-{self.config.effective_mode.upper()}-001",
                 route="pending",
                 retrieval_mode="local_mock",
-                fallback_mode=True,
+                fallback_mode=(
+                    self.config.effective_mode == "mock"
+                    or self.config.fallback_reason is not None
+                ),
+                requested_app_mode=self.config.requested_mode,
+                model_mode=self.config.effective_mode,
+                model_deployment=(
+                    self.config.azure_ai_model_deployment
+                    if self.config.foundry_enabled
+                    else None
+                ),
+                mode_fallback_reason=self.config.fallback_reason,
             ),
         )
 

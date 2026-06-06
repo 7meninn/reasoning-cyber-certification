@@ -50,6 +50,7 @@ class AgentExecutor(Generic[T]):
         fallback_used = False
         validation_error: str | None = None
         repair_notes: str | None = None
+        provider_fallback_reason: str | None = None
 
         try:
             parsed = parse_agent_json(raw_json, self.output_schema)
@@ -67,7 +68,7 @@ class AgentExecutor(Generic[T]):
                     parsed = parse_agent_json(repaired_json, self.output_schema)
                     raw_json = repaired_json
                     status = "repaired"
-                except (TypeError, ValueError, ValidationError) as repair_exc:
+                except Exception as repair_exc:
                     validation_error = f"{validation_error}\nRepair failed: {repair_exc}"
                     parsed = self._fallback(state, validation_error)
                     fallback_used = True
@@ -75,6 +76,12 @@ class AgentExecutor(Generic[T]):
             else:
                 parsed = self._fallback(state, validation_error)
                 fallback_used = True
+                status = "fallback"
+
+        provider_fallback_reason = getattr(self.agent, "last_provider_fallback_reason", None)
+        if provider_fallback_reason is not None:
+            fallback_used = True
+            if status == "success":
                 status = "fallback"
 
         self._record_step(
@@ -88,6 +95,7 @@ class AgentExecutor(Generic[T]):
             fallback_used=fallback_used,
             validation_error=validation_error,
             repair_notes=repair_notes,
+            fallback_reason=provider_fallback_reason,
         )
         if fallback_used:
             state.fallback_flags.append(self.name)
@@ -117,12 +125,18 @@ class AgentExecutor(Generic[T]):
         fallback_used: bool,
         validation_error: str | None,
         repair_notes: str | None,
+        fallback_reason: str | None,
     ) -> None:
         citations = list(getattr(parsed, "citations", []))
         guardrails = [parsed] if isinstance(parsed, GuardrailVerdict) else []
         if hasattr(parsed, "guardrail_verdict"):
             guardrails.append(getattr(parsed, "guardrail_verdict"))
         retrieval_mode = getattr(parsed, "retrieval_mode", None)
+        model_mode = getattr(self.agent, "last_model_mode", None)
+        model_deployment = getattr(self.agent, "last_model_deployment", None)
+        model_request_id = getattr(self.agent, "last_model_request_id", None)
+        model_finish_reason = getattr(self.agent, "last_model_finish_reason", None)
+        token_usage = getattr(self.agent, "last_model_token_usage", None)
 
         trace.agent_steps.append(
             AgentStep(
@@ -140,9 +154,14 @@ class AgentExecutor(Generic[T]):
                 fallback_used=fallback_used,
                 validation_error=validation_error,
                 repair_notes=repair_notes,
+                model_mode=model_mode,
+                model_deployment=model_deployment,
+                model_request_id=model_request_id,
+                model_finish_reason=model_finish_reason,
+                token_usage=token_usage,
+                fallback_reason=fallback_reason,
             )
         )
         trace.latency_ms += self.agent.latency_ms
         trace.citations.extend(citations)
         trace.guardrail_verdicts.extend(guardrails)
-
