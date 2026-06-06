@@ -4,15 +4,17 @@
 
 Multi-agent SOC readiness demo for the Agents League Reasoning track.
 
-Phase 4 adds optional Foundry IQ grounding while preserving the deterministic local demo. By default the app runs in `mock` mode with `local_mock` retrieval and no Azure credentials. `APP_MODE=foundry` enables model-backed reasoning, and `APP_MODE=foundry_iq` keeps those model-backed agents while retrieving evidence from a Foundry IQ / Azure AI Search knowledge base.
+Phase 5 adds interactive scenario labs and adaptive assessment while preserving the deterministic local demo. By default the app runs in `mock` mode with `local_mock` retrieval and no Azure credentials. `APP_MODE=foundry` enables model-backed reasoning, and `APP_MODE=foundry_iq` keeps those model-backed agents while retrieving evidence from a Foundry IQ / Azure AI Search knowledge base.
 
 ## Demo Story
 
-Synthetic learner `L-1001` is a helpdesk analyst who wants to become a SOC analyst in 4 weeks while working a meeting-heavy schedule. The system recommends a Security+ foundation plus SC-200-oriented readiness path, builds a capacity-aware study plan, runs a suspicious sign-in lab, returns a CONDITIONAL readiness verdict, and shows manager-level readiness insight.
+Synthetic learner `L-1001` is a helpdesk analyst who wants to become a SOC analyst in 4 weeks while working a meeting-heavy schedule. The system recommends a Security+ foundation plus SC-200-oriented readiness path, builds a capacity-aware study plan, runs an interactive SOC lab, scores the attempt, adapts remediation, and shows manager-level readiness insight.
 
 ## What Works Now
 
-- Streamlit demo app with learner, path, skill gap, study plan, lab, assessment, manager, and trace views.
+- Streamlit demo app with learner, path, skill gap, study plan, interactive lab, assessment, manager, and trace views.
+- Four synthetic defensive labs: suspicious sign-in, phishing triage, vulnerability prioritization, and KQL interpretation.
+- Deterministic lab scoring that maps mistakes to certification-readiness domains and adapts remediation.
 - Deterministic mock agents that return raw JSON strings.
 - Pydantic validation for every agent handoff, using the same parsing path intended for later LLM responses.
 - Explicit workflow state, route branches, agent registry, schema repair, and safe fallback behavior.
@@ -31,7 +33,7 @@ Synthetic learner `L-1001` is a helpdesk analyst who wants to become a SOC analy
 |---|---|
 | Accuracy and relevance | SOC Analyst readiness flow with cited Security+ and SC-200-oriented recommendations, optionally grounded through Foundry IQ |
 | Reasoning | Routed multi-agent path -> gap -> plan -> lab -> assessment -> remediation workflow |
-| Creativity | Cybersecurity readiness command center with a suspicious sign-in lab |
+| Creativity | Cybersecurity readiness command center with interactive SOC labs |
 | UX and presentation | Streamlit demo, reset button, learner and manager views, visible trace drawer, mode badges |
 | Reliability and safety | Pydantic validation, tests, guardrails, synthetic-only data, Foundry/Foundry IQ fallback |
 
@@ -96,27 +98,29 @@ The test runner installs only backend test dependencies. The demo runner install
 Current local result:
 
 ```text
-42 passed
+57 passed
 ```
 
-## Phase 4 Design Notes
+## Phase 5 Design Notes
 
 Mock agents intentionally return exact JSON strings, not Python dictionaries. The workflow parses those strings through Pydantic models before using the outputs. This proves schema validation, parsing errors, and trace capture before real LLM calls are introduced.
 
 Foundry-backed agents use the same executor contract: raw JSON string first, then Pydantic validation, repair attempt, and safe fallback. Foundry IQ retrieval is also adapter-based: live knowledge-base results become an `EvidenceBundle`; missing, malformed, unauthorized, empty, or timed-out retrieval falls back to `local_mock` and records the reason in `RunTrace`.
 
+Lab generation and lab scoring remain deterministic in all modes for demo reliability. The assessment agent consumes the parsed `LabAttempt`, so custom learner answers visibly change the readiness result and remediation sprint without depending on a live model call.
+
 ## Repository Map
 
 ```text
 app/                         Streamlit app, schemas, mock agents, orchestration, tests
-data/synthetic/              Synthetic learners, teams, knowledge docs, and lab artifacts
+data/synthetic/              Synthetic learners, teams, knowledge docs, and scenario labs
 docs/                        Architecture, data safety, demo script, evaluation notes
 scripts/                     One-command demo and test runners
 ```
 
 ## Trace Screenshot Placeholder
 
-The `Agent Trace` expander is available in the running Streamlit app and shows raw JSON responses, parsed outputs, citations, guardrail verdicts, model metadata, retrieval provider, knowledge base name, repair/fallback metadata, route, fallback mode, and latency. Screenshots can be added after submission without changing the runnable demo.
+The `Agent Trace` expander is available in the running Streamlit app and shows raw JSON responses, parsed outputs, lab score, selected lab, adaptive remediation reason, citations, guardrail verdicts, model metadata, retrieval provider, knowledge base name, repair/fallback metadata, route, fallback mode, and latency. Screenshots can be added after submission without changing the runnable demo.
 
 ## Synthetic Data Statement
 

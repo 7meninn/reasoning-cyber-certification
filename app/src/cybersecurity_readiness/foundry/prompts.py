@@ -59,8 +59,9 @@ PROMPTS: dict[str, AgentPrompt] = {
     "assessment": AgentPrompt(
         role="Assessment Agent",
         task=(
-            "Assess the synthetic lab performance and return a GO, CONDITIONAL, or "
-            "NOT_YET readiness result with a remediation sprint."
+            "Assess the parsed LabAttempt from the deterministic lab scorer and "
+            "return a GO, CONDITIONAL, or NOT_YET readiness result with an adaptive "
+            "remediation sprint."
         ),
     ),
     "manager_insights": AgentPrompt(

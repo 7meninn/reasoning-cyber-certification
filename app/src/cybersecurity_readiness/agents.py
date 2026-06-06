@@ -7,12 +7,15 @@ from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
 
+from .lab_scoring import PROFILE_CONDITIONAL, score_lab_attempt
+from .loader import DEFAULT_LAB_ID, get_lab
 from .schemas import (
     AgentStep,
     AssessmentResult,
     CertificationPath,
     EvidenceBundle,
     GuardrailVerdict,
+    LabAttempt,
     ManagerInsight,
     RouteDecision,
     RunTrace,
@@ -124,6 +127,7 @@ class MockIntakeRouterAgent(DeterministicMockAgent[RouteDecision]):
                 "Skill Gap Analyst Agent",
                 "Study Plan Generator Agent",
                 "Scenario Lab Coach Agent",
+                "Lab Scoring Agent",
                 "Assessment Agent",
                 "Manager Insights Agent",
                 "Verifier and Safety Agent"
@@ -619,77 +623,39 @@ class MockScenarioLabCoachAgent(DeterministicMockAgent[ScenarioLab]):
     output_schema = ScenarioLab
     latency_ms = 1188
 
-    def raw_response(self) -> str:
-        return dedent(
-            """
-            {
-              "lab_id": "LAB-SOC-001",
-              "title": "Suspicious sign-in investigation",
-              "domain": "Alert triage and incident response",
-              "prompt": "A synthetic alert shows repeated failed sign-ins followed by a successful login from an unfamiliar location and a mailbox rule change.",
-              "artifacts": [
-                {
-                  "artifact_type": "signin_log",
-                  "name": "Synthetic Entra sign-in events",
-                  "content": "2026-06-05T09:12:04Z user=alex.chen@example.com ip=203.0.113.42 result=Failure reason=InvalidPassword\\n2026-06-05T09:18:44Z user=alex.chen@example.com ip=203.0.113.42 result=Failure reason=InvalidPassword\\n2026-06-05T09:26:11Z user=alex.chen@example.com ip=198.51.100.17 result=Success location=Unfamiliar"
-                },
-                {
-                  "artifact_type": "mailbox_audit",
-                  "name": "Synthetic mailbox rule event",
-                  "content": "2026-06-05T09:31:20Z user=alex.chen@example.com action=New-InboxRule rule=Forward-Finance sender_domain=example.net"
-                },
-                {
-                  "artifact_type": "endpoint_alert",
-                  "name": "Synthetic endpoint note",
-                  "content": "Host=WKSTN-014 severity=Medium observation=No malware detected; browser session token reuse suspected."
-                }
-              ],
-              "learner_task": "Identify the likely incident type, the first containment action, and the evidence that should be preserved.",
-              "expected_investigation_path": [
-                "Treat the pattern as suspected account compromise.",
-                "Preserve sign-in logs, mailbox audit events, and endpoint context.",
-                "Contain by requiring password reset, revoking active sessions, and disabling the suspicious forwarding rule.",
-                "Escalate with a concise incident handoff and note that all artifacts are synthetic."
-              ],
-              "rubric": [
-                {
-                  "criterion": "Incident classification",
-                  "max_points": 4,
-                  "expected_signal": "Names suspected account compromise or identity-based intrusion."
-                },
-                {
-                  "criterion": "Containment choice",
-                  "max_points": 4,
-                  "expected_signal": "Prioritizes session revocation, password reset, and mailbox rule removal."
-                },
-                {
-                  "criterion": "Evidence handling",
-                  "max_points": 2,
-                  "expected_signal": "Preserves sign-in, mailbox, and endpoint evidence before broad conclusions."
-                }
-              ],
-              "safety_note": "Defensive synthetic lab only. Do not use these artifacts to infer real users, tenants, or systems.",
-              "citations": [
-                {
-                  "source_id": "SYN-SIGNIN-LAB",
-                  "title": "Synthetic Suspicious Sign-in Lab",
-                  "source_type": "synthetic_lab",
-                  "url": null,
-                  "excerpt": "The lab uses documentation-reserved IP addresses and fictional identities to simulate suspicious sign-in triage.",
-                  "metadata": {"synthetic": "true"}
-                },
-                {
-                  "source_id": "SYN-TRIAGE-PLAYBOOK",
-                  "title": "Synthetic Incident Triage Playbook",
-                  "source_type": "synthetic_internal",
-                  "url": null,
-                  "excerpt": "Use synthetic alerts to practice severity, scope, containment, evidence preservation, and escalation decisions.",
-                  "metadata": {"synthetic": "true"}
-                }
-              ]
-            }
-            """
-        ).strip()
+    def raw_response(self, context: Any | None = None) -> str:
+        lab_id = getattr(context, "selected_lab_id", None) or DEFAULT_LAB_ID
+        try:
+            lab = get_lab(lab_id)
+        except ValueError:
+            lab = get_lab(DEFAULT_LAB_ID)
+        return lab.model_dump_json(indent=2)
+
+
+class MockLabScoringAgent(DeterministicMockAgent[LabAttempt]):
+    name = "Lab Scoring Agent"
+    output_schema = LabAttempt
+    latency_ms = 733
+
+    def raw_response(self, context: Any | None = None) -> str:
+        lab = getattr(context, "scenario_lab", None) if context is not None else None
+        if not isinstance(lab, ScenarioLab):
+            lab = get_lab(DEFAULT_LAB_ID)
+        learner = getattr(context, "learner", None) if context is not None else None
+        learner_id = getattr(learner, "learner_id", "L-1001")
+        responses = getattr(context, "lab_responses", None) if context is not None else None
+        profile = (
+            getattr(context, "demo_response_profile", PROFILE_CONDITIONAL)
+            if context is not None
+            else PROFILE_CONDITIONAL
+        )
+        attempt = score_lab_attempt(
+            lab=lab,
+            learner_id=learner_id,
+            responses=responses,
+            response_profile=profile,
+        )
+        return attempt.model_dump_json(indent=2)
 
 
 class MockAssessmentAgent(DeterministicMockAgent[AssessmentResult]):
@@ -697,7 +663,106 @@ class MockAssessmentAgent(DeterministicMockAgent[AssessmentResult]):
     output_schema = AssessmentResult
     latency_ms = 1375
 
-    def raw_response(self) -> str:
+    def raw_response(self, context: Any | None = None) -> str:
+        lab_attempt = getattr(context, "lab_attempt", None) if context is not None else None
+        learner = getattr(context, "learner", None) if context is not None else None
+        learner_id = getattr(learner, "learner_id", "L-1001")
+        if isinstance(lab_attempt, LabAttempt):
+            base_scores = {
+                "Security foundations": 76,
+                "Incident response": 68,
+                "KQL and log interpretation": 58,
+                "Alert triage": 74,
+                "Reporting and communication": 82,
+            }
+            domain_scores = dict(base_scores)
+            for domain, score in lab_attempt.domain_scores.items():
+                baseline = base_scores.get(domain, score)
+                domain_scores[domain] = round((baseline + score) / 2)
+
+            overall_score = round((72 + lab_attempt.percentage_score) / 2)
+            if lab_attempt.guardrail_verdict.verdict == "blocked":
+                readiness = "NOT_YET"
+            elif overall_score >= 85 and lab_attempt.readiness == "GO":
+                readiness = "GO"
+            elif overall_score >= 60 and lab_attempt.readiness != "NOT_YET":
+                readiness = "CONDITIONAL"
+            else:
+                readiness = "NOT_YET"
+
+            weak_domains = lab_attempt.remediation_focus or [
+                domain for domain, score in domain_scores.items() if score < 75
+            ]
+            if readiness == "GO":
+                recommendation = (
+                    "Proceed to final review practice. Keep one short scenario lab in the plan "
+                    "to maintain SOC reasoning fluency."
+                )
+                remediation_tasks = [
+                    {
+                        "title": "Final timed SOC readiness review",
+                        "focus_domain": "Assessment readiness",
+                        "duration_minutes": 60,
+                        "outcome": "Confirm the learner can explain the lab path under time pressure.",
+                    }
+                ]
+                success_criteria = [
+                    "Maintain lab score at or above 85",
+                    "Explain evidence and containment without overclaiming",
+                ]
+            else:
+                recommendation = (
+                    "Continue the SOC readiness path and complete the adaptive remediation "
+                    "sprint before the final timed assessment."
+                )
+                remediation_tasks = [
+                    {
+                        "title": f"{domain} remediation drill",
+                        "focus_domain": domain,
+                        "duration_minutes": 45 if index else 60,
+                        "outcome": f"Close missed signals for {domain}.",
+                    }
+                    for index, domain in enumerate(weak_domains[:3])
+                ]
+                success_criteria = [
+                    "Score at least 75 in each remediated lab domain",
+                    "Explain missed signals from the lab debrief",
+                    "Keep all responses synthetic, defensive, and citation-aware",
+                ]
+
+            evidence = [
+                f"Interactive lab {lab_attempt.lab_id} scored {lab_attempt.percentage_score} with {lab_attempt.readiness} lab readiness.",
+                lab_attempt.adaptive_remediation_reason,
+            ]
+            for item in lab_attempt.score_breakdown:
+                if item.missed_signals:
+                    evidence.append(
+                        f"{item.domain}: missed {', '.join(item.missed_signals)}"
+                    )
+                else:
+                    evidence.append(f"{item.domain}: full credit on {item.question_id}")
+
+            payload = {
+                "learner_id": learner_id,
+                "overall_readiness": readiness,
+                "overall_score": overall_score,
+                "domain_scores": domain_scores,
+                "recommendation": recommendation,
+                "evidence": evidence,
+                "remediation_plan": {
+                    "duration_days": 5 if readiness != "GO" else 3,
+                    "tasks": remediation_tasks,
+                    "success_criteria": success_criteria,
+                },
+                "lab_attempt": lab_attempt.model_dump(mode="json"),
+                "citations": [
+                    citation.model_dump(mode="json")
+                    for citation in lab_attempt.citations
+                ],
+                "confidence": 0.9,
+            }
+            return json.dumps(payload, indent=2)
+
         return dedent(
             """
             {

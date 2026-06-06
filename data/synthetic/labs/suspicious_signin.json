@@ -1,30 +1,178 @@
 {
   "lab_id": "LAB-SOC-001",
   "title": "Suspicious sign-in investigation",
-  "synthetic_data_notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data.",
-  "reserved_ip_ranges": ["203.0.113.0/24", "198.51.100.0/24"],
-  "fictional_account_domain": "example.com",
-  "events": [
+  "domain": "Alert triage and incident response",
+  "prompt": "A synthetic alert shows repeated failed sign-ins followed by a successful login from an unfamiliar location and a mailbox rule change.",
+  "artifacts": [
     {
-      "timestamp": "2026-06-05T09:12:04Z",
-      "user": "alex.chen@example.com",
-      "ip": "203.0.113.42",
-      "result": "Failure",
-      "reason": "InvalidPassword"
+      "artifact_type": "signin_log",
+      "name": "Synthetic Entra sign-in events",
+      "content": "2026-06-05T09:12:04Z user=alex.chen@example.com ip=203.0.113.42 result=Failure reason=InvalidPassword\n2026-06-05T09:18:44Z user=alex.chen@example.com ip=203.0.113.42 result=Failure reason=InvalidPassword\n2026-06-05T09:26:11Z user=alex.chen@example.com ip=198.51.100.17 result=Success location=Unfamiliar"
     },
     {
-      "timestamp": "2026-06-05T09:26:11Z",
-      "user": "alex.chen@example.com",
-      "ip": "198.51.100.17",
-      "result": "Success",
-      "location": "Unfamiliar"
+      "artifact_type": "mailbox_audit",
+      "name": "Synthetic mailbox rule event",
+      "content": "2026-06-05T09:31:20Z user=alex.chen@example.com action=New-InboxRule rule=Forward-Finance sender_domain=example.net"
     },
     {
-      "timestamp": "2026-06-05T09:31:20Z",
-      "user": "alex.chen@example.com",
-      "action": "New-InboxRule",
-      "rule": "Forward-Finance"
+      "artifact_type": "endpoint_alert",
+      "name": "Synthetic endpoint note",
+      "content": "Host=WKSTN-014 severity=Medium observation=No malware detected; browser session token reuse suspected."
+    }
+  ],
+  "questions": [
+    {
+      "question_id": "SOC-001-Q1",
+      "prompt": "What is the most likely incident type?",
+      "response_type": "single_choice",
+      "domain": "Alert triage",
+      "points": 4,
+      "options": [
+        {
+          "option_id": "account_compromise",
+          "label": "Account compromise",
+          "text": "Treat as suspected identity/account compromise."
+        },
+        {
+          "option_id": "benign_travel",
+          "label": "Benign travel",
+          "text": "Treat as normal travel and close the alert."
+        },
+        {
+          "option_id": "endpoint_malware",
+          "label": "Endpoint malware",
+          "text": "Treat as endpoint malware without checking identity artifacts."
+        }
+      ],
+      "expected_option_ids": ["account_compromise"],
+      "expected_keywords": [],
+      "explanation": "The failed sign-ins, unfamiliar successful login, and forwarding rule point to likely account compromise.",
+      "citations": [
+        {
+          "source_id": "SYN-SIGNIN-LAB",
+          "title": "Synthetic Suspicious Sign-in Lab",
+          "source_type": "synthetic_lab",
+          "url": null,
+          "excerpt": "The lab uses documentation-reserved IP addresses and fictional identities to simulate suspicious sign-in triage.",
+          "metadata": {
+            "synthetic": "true"
+          }
+        }
+      ]
+    },
+    {
+      "question_id": "SOC-001-Q2",
+      "prompt": "Which containment actions should happen first?",
+      "response_type": "multi_select",
+      "domain": "Incident response",
+      "points": 3,
+      "options": [
+        {
+          "option_id": "revoke_sessions",
+          "label": "Revoke sessions",
+          "text": "Revoke active sessions for the affected synthetic user."
+        },
+        {
+          "option_id": "reset_password",
+          "label": "Reset password",
+          "text": "Require a password reset for the affected synthetic user."
+        },
+        {
+          "option_id": "remove_rule",
+          "label": "Remove rule",
+          "text": "Disable the suspicious forwarding rule."
+        },
+        {
+          "option_id": "delete_mailbox",
+          "label": "Delete mailbox",
+          "text": "Delete the mailbox immediately."
+        }
+      ],
+      "expected_option_ids": ["revoke_sessions", "reset_password", "remove_rule"],
+      "expected_keywords": [],
+      "explanation": "Containment should revoke sessions, reset credentials, and remove the suspicious rule without destructive overreach.",
+      "citations": [
+        {
+          "source_id": "SYN-TRIAGE-PLAYBOOK",
+          "title": "Synthetic Incident Triage Playbook",
+          "source_type": "synthetic_internal",
+          "url": null,
+          "excerpt": "Use synthetic alerts to practice severity, scope, containment, evidence preservation, and escalation decisions.",
+          "metadata": {
+            "synthetic": "true"
+          }
+        }
+      ]
+    },
+    {
+      "question_id": "SOC-001-Q3",
+      "prompt": "Write the evidence preservation note for the incident handoff.",
+      "response_type": "free_text",
+      "domain": "Reporting and communication",
+      "points": 3,
+      "options": [],
+      "expected_option_ids": [],
+      "expected_keywords": ["sign-in logs", "mailbox audit", "endpoint context"],
+      "explanation": "The handoff should preserve identity, mailbox, and endpoint context before drawing broad conclusions.",
+      "citations": [
+        {
+          "source_id": "SYN-TRIAGE-PLAYBOOK",
+          "title": "Synthetic Incident Triage Playbook",
+          "source_type": "synthetic_internal",
+          "url": null,
+          "excerpt": "Use synthetic alerts to practice severity, scope, containment, evidence preservation, and escalation decisions.",
+          "metadata": {
+            "synthetic": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "learner_task": "Identify the likely incident type, choose first containment actions, and write the evidence that should be preserved.",
+  "expected_investigation_path": [
+    "Treat the pattern as suspected account compromise.",
+    "Preserve sign-in logs, mailbox audit events, and endpoint context.",
+    "Contain by requiring password reset, revoking active sessions, and disabling the suspicious forwarding rule.",
+    "Escalate with a concise incident handoff and note that all artifacts are synthetic."
+  ],
+  "rubric": [
+    {
+      "criterion": "Incident classification",
+      "max_points": 4,
+      "expected_signal": "Names suspected account compromise or identity-based intrusion."
+    },
+    {
+      "criterion": "Containment choice",
+      "max_points": 3,
+      "expected_signal": "Prioritizes session revocation, password reset, and mailbox rule removal."
+    },
+    {
+      "criterion": "Evidence handling",
+      "max_points": 3,
+      "expected_signal": "Preserves sign-in, mailbox, and endpoint evidence before broad conclusions."
+    }
+  ],
+  "safety_note": "Defensive synthetic lab only. Do not use these artifacts to infer real users, tenants, or systems.",
+  "citations": [
+    {
+      "source_id": "SYN-SIGNIN-LAB",
+      "title": "Synthetic Suspicious Sign-in Lab",
+      "source_type": "synthetic_lab",
+      "url": null,
+      "excerpt": "The lab uses documentation-reserved IP addresses and fictional identities to simulate suspicious sign-in triage.",
+      "metadata": {
+        "synthetic": "true"
+      }
+    },
+    {
+      "source_id": "SYN-TRIAGE-PLAYBOOK",
+      "title": "Synthetic Incident Triage Playbook",
+      "source_type": "synthetic_internal",
+      "url": null,
+      "excerpt": "Use synthetic alerts to practice severity, scope, containment, evidence preservation, and escalation decisions.",
+      "metadata": {
+        "synthetic": "true"
+      }
     }
   ]
 }
-

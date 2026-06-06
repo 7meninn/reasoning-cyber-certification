@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class StrictModel(BaseModel):
@@ -139,6 +139,13 @@ class StudyPlan(StrictModel):
     confidence: float = Field(ge=0, le=1)
 
 
+class GuardrailVerdict(StrictModel):
+    verdict: Literal["allowed", "rewrite_required", "blocked"]
+    issues: list[str]
+    rewrite_instructions: str | None = None
+    checks: dict[str, bool]
+
+
 class LabArtifact(StrictModel):
     artifact_type: str
     name: str
@@ -151,12 +158,112 @@ class RubricItem(StrictModel):
     expected_signal: str
 
 
+class LabOption(StrictModel):
+    option_id: str
+    label: str
+    text: str
+
+
+class LabQuestion(StrictModel):
+    question_id: str
+    prompt: str
+    response_type: Literal["single_choice", "multi_select", "free_text"]
+    domain: str
+    points: int = Field(gt=0, le=20)
+    options: list[LabOption] = Field(default_factory=list)
+    expected_option_ids: list[str] = Field(default_factory=list)
+    expected_keywords: list[str] = Field(default_factory=list)
+    explanation: str
+    citations: list[Citation] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_expected_answers(self) -> "LabQuestion":
+        option_ids = {option.option_id for option in self.options}
+        unknown_expected = sorted(set(self.expected_option_ids) - option_ids)
+        if unknown_expected:
+            raise ValueError(
+                f"{self.question_id} expected_option_ids reference unknown options: "
+                f"{', '.join(unknown_expected)}"
+            )
+        if self.response_type in {"single_choice", "multi_select"} and not self.options:
+            raise ValueError(f"{self.question_id} choice question requires options")
+        if self.response_type == "single_choice" and len(self.expected_option_ids) > 1:
+            raise ValueError(f"{self.question_id} single_choice requires one expected option")
+        if self.response_type == "free_text" and not self.expected_keywords:
+            raise ValueError(f"{self.question_id} free_text question requires expected keywords")
+        return self
+
+
+class LearnerLabResponse(StrictModel):
+    question_id: str
+    selected_option_ids: list[str] = Field(default_factory=list)
+    free_text: str = ""
+
+    @field_validator("selected_option_ids")
+    @classmethod
+    def selected_options_must_be_unique(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)):
+            raise ValueError("selected_option_ids cannot contain duplicates")
+        return value
+
+
+class LabScoreBreakdown(StrictModel):
+    question_id: str
+    domain: str
+    criterion: str
+    earned_points: int = Field(ge=0, le=20)
+    max_points: int = Field(gt=0, le=20)
+    feedback: str
+    missed_signals: list[str] = Field(default_factory=list)
+    citations: list[Citation] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def earned_points_cannot_exceed_max(self) -> "LabScoreBreakdown":
+        if self.earned_points > self.max_points:
+            raise ValueError("earned_points cannot exceed max_points")
+        return self
+
+
+class LabAttempt(StrictModel):
+    lab_id: str
+    learner_id: str
+    response_profile: Literal["go", "conditional", "not_yet", "custom"]
+    responses: list[LearnerLabResponse]
+    score_breakdown: list[LabScoreBreakdown]
+    total_score: int = Field(ge=0)
+    max_score: int = Field(gt=0)
+    percentage_score: int = Field(ge=0, le=100)
+    readiness: Literal["GO", "CONDITIONAL", "NOT_YET"]
+    domain_scores: dict[str, int]
+    mistakes_by_domain: dict[str, list[str]]
+    remediation_focus: list[str]
+    adaptive_remediation_reason: str
+    guardrail_verdict: GuardrailVerdict
+    citations: list[Citation]
+    confidence: float = Field(ge=0, le=1)
+
+    @field_validator("domain_scores")
+    @classmethod
+    def lab_domain_scores_must_be_percentages(cls, value: dict[str, int]) -> dict[str, int]:
+        for domain, score in value.items():
+            if score < 0 or score > 100:
+                raise ValueError(f"{domain} score must be between 0 and 100")
+        return value
+
+    @model_validator(mode="after")
+    def lab_scores_must_be_consistent(self) -> "LabAttempt":
+        if self.total_score > self.max_score:
+            raise ValueError("total_score cannot exceed max_score")
+        return self
+
+
 class ScenarioLab(StrictModel):
     lab_id: str
     title: str
     domain: str
     prompt: str
     artifacts: list[LabArtifact]
+    questions: list[LabQuestion] = Field(default_factory=list)
     learner_task: str
     expected_investigation_path: list[str]
     rubric: list[RubricItem]
@@ -185,6 +292,7 @@ class AssessmentResult(StrictModel):
     recommendation: str
     evidence: list[str]
     remediation_plan: RemediationPlan
+    lab_attempt: LabAttempt | None = None
     citations: list[Citation]
     confidence: float = Field(ge=0, le=1)
 
@@ -207,13 +315,6 @@ class ManagerInsight(StrictModel):
     privacy_note: str
     citations: list[Citation]
     confidence: float = Field(ge=0, le=1)
-
-
-class GuardrailVerdict(StrictModel):
-    verdict: Literal["allowed", "rewrite_required", "blocked"]
-    issues: list[str]
-    rewrite_instructions: str | None = None
-    checks: dict[str, bool]
 
 
 class SafetyResponse(StrictModel):
@@ -279,6 +380,10 @@ class RunTrace(StrictModel):
     mode_fallback_reason: str | None = None
     knowledge_base_name: str | None = None
     retrieval_fallback_reason: str | None = None
+    selected_lab_id: str | None = None
+    lab_score: int | None = Field(default=None, ge=0, le=100)
+    lab_readiness: Literal["GO", "CONDITIONAL", "NOT_YET"] | None = None
+    adaptive_remediation_reason: str | None = None
 
 
 class WorkflowResult(StrictModel):
@@ -289,6 +394,7 @@ class WorkflowResult(StrictModel):
     skill_gap_report: SkillGapReport | None = None
     study_plan: StudyPlan | None = None
     scenario_lab: ScenarioLab | None = None
+    lab_attempt: LabAttempt | None = None
     assessment_result: AssessmentResult | None = None
     manager_insight: ManagerInsight | None = None
     safety_response: SafetyResponse | None = None

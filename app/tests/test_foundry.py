@@ -193,6 +193,7 @@ def test_foundry_registry_only_replaces_selected_reasoning_agents():
     assert not isinstance(registry["intake_router"].agent, FoundryBackedAgent)
     assert not isinstance(registry["knowledge_curator"].agent, FoundryBackedAgent)
     assert not isinstance(registry["scenario_lab_coach"].agent, FoundryBackedAgent)
+    assert not isinstance(registry["lab_scoring"].agent, FoundryBackedAgent)
     assert not isinstance(registry["safety_refusal"].agent, FoundryBackedAgent)
 
 

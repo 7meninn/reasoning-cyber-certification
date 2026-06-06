@@ -1,0 +1,178 @@
+{
+  "lab_id": "LAB-SOC-004",
+  "title": "KQL interpretation mini-task",
+  "domain": "KQL and log interpretation",
+  "prompt": "A synthetic KQL-like query surfaces sign-in events where a successful login follows repeated failures from different documentation-reserved IP ranges.",
+  "artifacts": [
+    {
+      "artifact_type": "kql_like_query",
+      "name": "Synthetic KQL-like query",
+      "content": "SigninEvents\n| where TimeGenerated between (datetime(2026-06-05T09:00:00Z) .. datetime(2026-06-05T10:00:00Z))\n| summarize failures=countif(Result == 'Failure'), successes=countif(Result == 'Success'), locations=make_set(Location) by UserPrincipalName, IPAddress\n| where failures >= 2 or successes >= 1"
+    },
+    {
+      "artifact_type": "query_results",
+      "name": "Synthetic query results",
+      "content": "alex.chen@example.com ip=203.0.113.42 failures=2 successes=0 locations=[]\nalex.chen@example.com ip=198.51.100.17 failures=0 successes=1 locations=['Unfamiliar']\njamie.lee@example.com ip=192.0.2.88 failures=1 successes=0 locations=[]"
+    },
+    {
+      "artifact_type": "analyst_note",
+      "name": "Synthetic analyst note",
+      "content": "The query is for interpretation practice only. It does not query a real tenant and should not be copied into production without review."
+    }
+  ],
+  "questions": [
+    {
+      "question_id": "SOC-004-Q1",
+      "prompt": "What does the query primarily summarize?",
+      "response_type": "single_choice",
+      "domain": "KQL and log interpretation",
+      "points": 4,
+      "options": [
+        {
+          "option_id": "signin_counts",
+          "label": "Sign-in counts",
+          "text": "It summarizes failures, successes, and locations by synthetic user and IP address."
+        },
+        {
+          "option_id": "file_hashes",
+          "label": "File hashes",
+          "text": "It summarizes malware file hashes by endpoint."
+        },
+        {
+          "option_id": "email_rules",
+          "label": "Mailbox rules",
+          "text": "It summarizes mailbox forwarding rules only."
+        }
+      ],
+      "expected_option_ids": ["signin_counts"],
+      "expected_keywords": [],
+      "explanation": "The query groups synthetic sign-in events by user and IP and counts failures and successes.",
+      "citations": [
+        {
+          "source_id": "SYN-KQL-LAB",
+          "title": "Synthetic KQL Interpretation Lab",
+          "source_type": "synthetic_lab",
+          "url": null,
+          "excerpt": "Synthetic KQL labs teach query interpretation with fictional logs and documentation-reserved network ranges.",
+          "metadata": {
+            "synthetic": "true"
+          }
+        }
+      ]
+    },
+    {
+      "question_id": "SOC-004-Q2",
+      "prompt": "Which observations should be called out?",
+      "response_type": "multi_select",
+      "domain": "Alert triage",
+      "points": 3,
+      "options": [
+        {
+          "option_id": "same_user_multiple_ips",
+          "label": "Multiple IPs",
+          "text": "The same synthetic user appears with repeated failures and a later success from another IP."
+        },
+        {
+          "option_id": "unfamiliar_location",
+          "label": "Unfamiliar location",
+          "text": "One successful sign-in has an unfamiliar location marker."
+        },
+        {
+          "option_id": "needs_identity_context",
+          "label": "Identity context",
+          "text": "The result needs identity/session context before final conclusions."
+        },
+        {
+          "option_id": "confirmed_breach",
+          "label": "Confirmed breach",
+          "text": "The query alone proves a confirmed breach."
+        }
+      ],
+      "expected_option_ids": ["same_user_multiple_ips", "unfamiliar_location", "needs_identity_context"],
+      "expected_keywords": [],
+      "explanation": "The correct interpretation calls out suspicious sequence indicators but avoids claiming proof from one query.",
+      "citations": [
+        {
+          "source_id": "SYN-TRIAGE-PLAYBOOK",
+          "title": "Synthetic Incident Triage Playbook",
+          "source_type": "synthetic_internal",
+          "url": null,
+          "excerpt": "Use synthetic alerts to practice severity, scope, containment, evidence preservation, and escalation decisions.",
+          "metadata": {
+            "synthetic": "true"
+          }
+        }
+      ]
+    },
+    {
+      "question_id": "SOC-004-Q3",
+      "prompt": "Explain the query result in plain language.",
+      "response_type": "free_text",
+      "domain": "KQL and log interpretation",
+      "points": 3,
+      "options": [],
+      "expected_option_ids": [],
+      "expected_keywords": ["repeated failures", "successful login", "needs more context"],
+      "explanation": "Plain-language interpretation should mention repeated failures, the later success, and the need for more context.",
+      "citations": [
+        {
+          "source_id": "SYN-KQL-LAB",
+          "title": "Synthetic KQL Interpretation Lab",
+          "source_type": "synthetic_lab",
+          "url": null,
+          "excerpt": "Synthetic KQL labs teach query interpretation with fictional logs and documentation-reserved network ranges.",
+          "metadata": {
+            "synthetic": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "learner_task": "Interpret the query, identify suspicious-but-not-conclusive signals, and explain the result in plain language.",
+  "expected_investigation_path": [
+    "Identify that the query summarizes sign-in outcomes by user and IP.",
+    "Call out repeated failures followed by a success from a different documentation-reserved IP range.",
+    "Avoid overclaiming from a single query result.",
+    "Recommend identity/session context as the next defensive evidence source."
+  ],
+  "rubric": [
+    {
+      "criterion": "Query comprehension",
+      "max_points": 4,
+      "expected_signal": "Explains the grouping and count fields correctly."
+    },
+    {
+      "criterion": "Signal interpretation",
+      "max_points": 3,
+      "expected_signal": "Identifies suspicious sequence and unfamiliar location without overclaiming."
+    },
+    {
+      "criterion": "Plain-language explanation",
+      "max_points": 3,
+      "expected_signal": "States repeated failures, later success, and need for more context."
+    }
+  ],
+  "safety_note": "Synthetic KQL interpretation only. The query is illustrative and not production guidance.",
+  "citations": [
+    {
+      "source_id": "SYN-KQL-LAB",
+      "title": "Synthetic KQL Interpretation Lab",
+      "source_type": "synthetic_lab",
+      "url": null,
+      "excerpt": "Synthetic KQL labs teach query interpretation with fictional logs and documentation-reserved network ranges.",
+      "metadata": {
+        "synthetic": "true"
+      }
+    },
+    {
+      "source_id": "SYN-TRIAGE-PLAYBOOK",
+      "title": "Synthetic Incident Triage Playbook",
+      "source_type": "synthetic_internal",
+      "url": null,
+      "excerpt": "Use synthetic alerts to practice severity, scope, containment, evidence preservation, and escalation decisions.",
+      "metadata": {
+        "synthetic": "true"
+      }
+    }
+  ]
+}

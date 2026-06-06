@@ -1,0 +1,178 @@
+{
+  "lab_id": "LAB-SOC-002",
+  "title": "Phishing triage and mailbox containment",
+  "domain": "Alert triage and reporting",
+  "prompt": "A synthetic user reports an invoice-themed message with a lookalike sender, a blocked attachment, and two recipients who clicked the link.",
+  "artifacts": [
+    {
+      "artifact_type": "message_header",
+      "name": "Synthetic message header",
+      "content": "from=billing-update@example.net reply_to=payroll-help@example.org subject='Invoice adjustment' spf=softfail dmarc=fail received_ip=192.0.2.44"
+    },
+    {
+      "artifact_type": "mail_gateway",
+      "name": "Synthetic gateway verdict",
+      "content": "attachment=invoice_update.iso action=blocked url=https://contoso-billing.example.net/session verdict=phish_suspected recipients_clicked=2"
+    },
+    {
+      "artifact_type": "user_report",
+      "name": "Synthetic user report",
+      "content": "maria.santos@example.com reports unexpected invoice email; no payment was made; link opened in browser before warning page appeared."
+    }
+  ],
+  "questions": [
+    {
+      "question_id": "SOC-002-Q1",
+      "prompt": "What should the triage classification be?",
+      "response_type": "single_choice",
+      "domain": "Alert triage",
+      "points": 4,
+      "options": [
+        {
+          "option_id": "phishing_campaign",
+          "label": "Phishing",
+          "text": "Classify as a synthetic phishing campaign requiring mailbox and click-scope triage."
+        },
+        {
+          "option_id": "spam_only",
+          "label": "Spam only",
+          "text": "Classify as low-risk spam because the attachment was blocked."
+        },
+        {
+          "option_id": "malware_confirmed",
+          "label": "Confirmed malware",
+          "text": "Classify as confirmed malware execution without endpoint evidence."
+        }
+      ],
+      "expected_option_ids": ["phishing_campaign"],
+      "expected_keywords": [],
+      "explanation": "The failed authentication, suspicious attachment, and clicks justify phishing triage even though the attachment was blocked.",
+      "citations": [
+        {
+          "source_id": "SYN-PHISHING-LAB",
+          "title": "Synthetic Phishing Triage Lab",
+          "source_type": "synthetic_lab",
+          "url": null,
+          "excerpt": "Synthetic phishing labs use fictional messages, safe domains, and blocked payloads to practice defensive triage.",
+          "metadata": {
+            "synthetic": "true"
+          }
+        }
+      ]
+    },
+    {
+      "question_id": "SOC-002-Q2",
+      "prompt": "Which first actions are appropriate?",
+      "response_type": "multi_select",
+      "domain": "Incident response",
+      "points": 3,
+      "options": [
+        {
+          "option_id": "quarantine_message",
+          "label": "Quarantine",
+          "text": "Quarantine matching messages from synthetic mailboxes."
+        },
+        {
+          "option_id": "identify_clickers",
+          "label": "Identify clickers",
+          "text": "Identify clicked recipients and check synthetic sign-in/session activity."
+        },
+        {
+          "option_id": "preserve_header",
+          "label": "Preserve header",
+          "text": "Preserve message headers, gateway verdict, and user report."
+        },
+        {
+          "option_id": "publish_passwords",
+          "label": "Publish passwords",
+          "text": "Post user passwords to the incident channel."
+        }
+      ],
+      "expected_option_ids": ["quarantine_message", "identify_clickers", "preserve_header"],
+      "expected_keywords": [],
+      "explanation": "The response should remove exposure, scope clicked users, and preserve evidence without unsafe credential handling.",
+      "citations": [
+        {
+          "source_id": "SYN-TRIAGE-PLAYBOOK",
+          "title": "Synthetic Incident Triage Playbook",
+          "source_type": "synthetic_internal",
+          "url": null,
+          "excerpt": "Use synthetic alerts to practice severity, scope, containment, evidence preservation, and escalation decisions.",
+          "metadata": {
+            "synthetic": "true"
+          }
+        }
+      ]
+    },
+    {
+      "question_id": "SOC-002-Q3",
+      "prompt": "Write a manager-safe update for this phishing triage.",
+      "response_type": "free_text",
+      "domain": "Reporting and communication",
+      "points": 3,
+      "options": [],
+      "expected_option_ids": [],
+      "expected_keywords": ["quarantined messages", "clicked recipients", "synthetic evidence"],
+      "explanation": "A manager-safe update should summarize containment, scope, and evidence without exposing private learner details.",
+      "citations": [
+        {
+          "source_id": "SYN-MANAGER-BRIEF",
+          "title": "Synthetic Manager Readiness Dashboard Brief",
+          "source_type": "synthetic_policy",
+          "url": null,
+          "excerpt": "Manager summaries should aggregate readiness and capacity patterns without exposing private learner weaknesses.",
+          "metadata": {
+            "synthetic": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "learner_task": "Classify the phishing alert, choose safe triage actions, and draft a manager-safe update.",
+  "expected_investigation_path": [
+    "Classify the message as synthetic phishing.",
+    "Preserve message headers, gateway verdicts, and user reports.",
+    "Quarantine matching messages and identify clicked recipients.",
+    "Report scope and containment without real PII or secrets."
+  ],
+  "rubric": [
+    {
+      "criterion": "Phishing classification",
+      "max_points": 4,
+      "expected_signal": "Names phishing and avoids overclaiming malware execution."
+    },
+    {
+      "criterion": "Containment and scoping",
+      "max_points": 3,
+      "expected_signal": "Quarantines messages, scopes clicked recipients, and preserves evidence."
+    },
+    {
+      "criterion": "Manager-safe communication",
+      "max_points": 3,
+      "expected_signal": "Summarizes containment and scope without exposing private data."
+    }
+  ],
+  "safety_note": "Synthetic defensive phishing triage only. Do not request real payloads, credentials, or tenant data.",
+  "citations": [
+    {
+      "source_id": "SYN-PHISHING-LAB",
+      "title": "Synthetic Phishing Triage Lab",
+      "source_type": "synthetic_lab",
+      "url": null,
+      "excerpt": "Synthetic phishing labs use fictional messages, safe domains, and blocked payloads to practice defensive triage.",
+      "metadata": {
+        "synthetic": "true"
+      }
+    },
+    {
+      "source_id": "SYN-TRIAGE-PLAYBOOK",
+      "title": "Synthetic Incident Triage Playbook",
+      "source_type": "synthetic_internal",
+      "url": null,
+      "excerpt": "Use synthetic alerts to practice severity, scope, containment, evidence preservation, and escalation decisions.",
+      "metadata": {
+        "synthetic": "true"
+      }
+    }
+  ]
+}

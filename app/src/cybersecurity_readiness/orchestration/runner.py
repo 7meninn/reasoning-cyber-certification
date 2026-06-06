@@ -9,7 +9,7 @@ from ..safety import (
     validate_citations,
     validate_citations_against_evidence,
 )
-from ..schemas import Citation, RouteDecision, RunTrace, ToolCall, WorkflowResult
+from ..schemas import Citation, LearnerLabResponse, RouteDecision, RunTrace, ToolCall, WorkflowResult
 from .executor import AgentExecutor
 from .registry import build_foundry_agent_registry, build_mock_agent_registry
 from .state import WorkflowState
@@ -51,11 +51,17 @@ class OrchestratedWorkflowRunner:
         self,
         learner_id: str = "L-1001",
         request_text: str = DEFAULT_DEMO_REQUEST,
+        selected_lab_id: str | None = None,
+        lab_responses: list[LearnerLabResponse] | None = None,
+        demo_response_profile: str = "conditional",
     ) -> WorkflowResult:
         learner = get_learner(learner_id)
         state = WorkflowState(
             request_text=request_text,
             learner=learner,
+            selected_lab_id=selected_lab_id,
+            lab_responses=lab_responses,
+            demo_response_profile=demo_response_profile,
             trace=RunTrace(
                 run_id=f"RUN-{learner_id}-{self.config.effective_mode.upper()}-001",
                 route="pending",
@@ -78,6 +84,7 @@ class OrchestratedWorkflowRunner:
                     if self.config.foundry_iq_enabled
                     else None
                 ),
+                selected_lab_id=selected_lab_id,
             ),
         )
 
@@ -156,8 +163,8 @@ class OrchestratedWorkflowRunner:
         self._retrieve_evidence(
             state,
             query=(
-                "SOC Analyst Security+ SC-200 suspicious sign-in capacity "
-                "manager privacy triage"
+                "SOC Analyst Security+ SC-200 suspicious sign-in phishing "
+                "vulnerability KQL capacity manager privacy triage"
             ),
         )
         state.evidence = self.registry["knowledge_curator"].execute(
@@ -177,10 +184,20 @@ class OrchestratedWorkflowRunner:
             state, "Generate 4-week capacity-aware plan"
         ).parsed
         state.scenario_lab = self.registry["scenario_lab_coach"].execute(
-            state, "Create defensive synthetic suspicious sign-in lab"
+            state, "Create selected defensive synthetic scenario lab"
         ).parsed
+        state.trace.selected_lab_id = state.scenario_lab.lab_id
+        state.lab_attempt = self.registry["lab_scoring"].execute(
+            state, "Score learner lab responses with deterministic rubric"
+        ).parsed
+        state.trace.selected_lab_id = state.lab_attempt.lab_id
+        state.trace.lab_score = state.lab_attempt.percentage_score
+        state.trace.lab_readiness = state.lab_attempt.readiness
+        state.trace.adaptive_remediation_reason = (
+            state.lab_attempt.adaptive_remediation_reason
+        )
         state.assessment_result = self.registry["assessment"].execute(
-            state, "Score partial lab answer and produce readiness verdict"
+            state, "Convert lab attempt into readiness verdict and remediation sprint"
         ).parsed
         state.manager_insight = self.registry["manager_insights"].execute(
             state, "Aggregate synthetic team readiness without private learner detail"

@@ -8,6 +8,9 @@ from ..schemas import (
     Citation,
     EvidenceBundle,
     GuardrailVerdict,
+    LabAttempt,
+    LabScoreBreakdown,
+    LearnerLabResponse,
     ManagerInsight,
     RemediationPlan,
     RouteDecision,
@@ -126,6 +129,38 @@ def fallback_for_schema(schema: type[Any], reason: str) -> Any:
             safety_note="Fallback defensive content only.",
             citations=[citation],
         )
+    if schema is LabAttempt:
+        return LabAttempt(
+            lab_id="LAB-FALLBACK",
+            learner_id="L-1001",
+            response_profile="custom",
+            responses=[LearnerLabResponse(question_id="fallback")],
+            score_breakdown=[
+                LabScoreBreakdown(
+                    question_id="fallback",
+                    domain="Safety and schema recovery",
+                    criterion="Fallback lab scoring",
+                    earned_points=0,
+                    max_points=1,
+                    feedback="Fallback lab attempt used after schema validation failed.",
+                    missed_signals=["Restore valid lab scoring output"],
+                    citations=[citation],
+                )
+            ],
+            total_score=0,
+            max_score=1,
+            percentage_score=0,
+            readiness="NOT_YET",
+            domain_scores={"Safety and schema recovery": 0},
+            mistakes_by_domain={
+                "Safety and schema recovery": ["Restore valid lab scoring output"]
+            },
+            remediation_focus=["Safety and schema recovery"],
+            adaptive_remediation_reason="Fallback lab attempt used after scoring failed.",
+            guardrail_verdict=fallback_guardrail(reason),
+            citations=[citation],
+            confidence=0.1,
+        )
     if schema is AssessmentResult:
         return AssessmentResult(
             learner_id="L-1001",
@@ -163,4 +198,3 @@ def fallback_for_schema(schema: type[Any], reason: str) -> Any:
             guardrail_verdict=blocked_guardrail([reason]),
         )
     raise TypeError(f"No fallback registered for schema {schema.__name__}.")
-

@@ -7,6 +7,7 @@ from cybersecurity_readiness.agents import (
     MockCertificationPathAdvisorAgent,
     MockIntakeRouterAgent,
     MockKnowledgeCuratorAgent,
+    MockLabScoringAgent,
     MockManagerInsightsAgent,
     MockScenarioLabCoachAgent,
     MockSkillGapAnalystAgent,
@@ -24,6 +25,7 @@ AGENTS = [
     MockSkillGapAnalystAgent(),
     MockStudyPlanGeneratorAgent(),
     MockScenarioLabCoachAgent(),
+    MockLabScoringAgent(),
     MockAssessmentAgent(),
     MockManagerInsightsAgent(),
     MockVerifierSafetyAgent(),
@@ -54,4 +56,3 @@ def test_mock_agents_return_raw_json_strings_and_parse_through_schema():
 def test_parse_agent_json_rejects_python_dict_bypass():
     with pytest.raises(TypeError, match="raw JSON strings"):
         parse_agent_json({"route": "soc_readiness_demo"}, RouteDecision)  # type: ignore[arg-type]
-

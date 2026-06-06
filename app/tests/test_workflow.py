@@ -18,6 +18,8 @@ def test_golden_path_l1001_runs_end_to_end_in_local_mock_mode():
     assert "Microsoft SC-200-oriented SOC readiness" in result.certification_path.recommended_certifications
     assert result.study_plan.duration_weeks == 4
     assert result.scenario_lab.lab_id == "LAB-SOC-001"
+    assert result.lab_attempt.lab_id == "LAB-SOC-001"
+    assert result.lab_attempt.readiness == "CONDITIONAL"
     assert result.assessment_result.overall_readiness == "CONDITIONAL"
     assert result.manager_insight.team_id == "TEAM-SOC-A"
 
@@ -28,10 +30,13 @@ def test_trace_contains_raw_json_guardrails_citations_and_realistic_latency():
 
     assert trace.retrieval_mode == "local_mock"
     assert trace.fallback_mode is True
-    assert trace.latency_ms == 9175
+    assert trace.latency_ms == 9908
     assert len(trace.tool_calls) == 1
     assert trace.tool_calls[0].tool_name == "retrieve_evidence"
-    assert len(trace.agent_steps) == 9
+    assert len(trace.agent_steps) == 10
+    assert trace.selected_lab_id == "LAB-SOC-001"
+    assert trace.lab_score == 60
+    assert trace.lab_readiness == "CONDITIONAL"
     assert all(isinstance(step.raw_json_response, str) for step in trace.agent_steps)
     assert any(verdict.verdict == "allowed" for verdict in trace.guardrail_verdicts)
     assert {"OFFICIAL-SC200", "SYN-SOC-GUIDE", "SYN-SIGNIN-LAB"} <= {

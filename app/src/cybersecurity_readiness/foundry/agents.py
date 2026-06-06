@@ -46,6 +46,12 @@ def build_agent_payload(state: WorkflowState, agent_key: str) -> dict[str, Any]:
     return {
         "agent_key": agent_key,
         "request_text": state.request_text,
+        "selected_lab_id": state.selected_lab_id,
+        "demo_response_profile": state.demo_response_profile,
+        "lab_responses": [
+            response.model_dump(mode="json")
+            for response in (state.lab_responses or [])
+        ],
         "learner": state.learner.model_dump(mode="json"),
         "input_guardrail": _dump_model(state.input_guardrail),
         "route": _dump_model(state.route),
@@ -54,6 +60,7 @@ def build_agent_payload(state: WorkflowState, agent_key: str) -> dict[str, Any]:
         "skill_gap_report": _dump_model(state.skill_gap_report),
         "study_plan": _dump_model(state.study_plan),
         "scenario_lab": _dump_model(state.scenario_lab),
+        "lab_attempt": _dump_model(state.lab_attempt),
         "assessment_result": _dump_model(state.assessment_result),
         "manager_insight": _dump_model(state.manager_insight),
         "trace_context": {

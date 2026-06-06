@@ -7,6 +7,8 @@ from ..schemas import (
     CertificationPath,
     EvidenceBundle,
     GuardrailVerdict,
+    LabAttempt,
+    LearnerLabResponse,
     LearnerProfile,
     ManagerInsight,
     RouteDecision,
@@ -24,6 +26,9 @@ class WorkflowState:
     request_text: str
     learner: LearnerProfile
     trace: RunTrace
+    selected_lab_id: str | None = None
+    lab_responses: list[LearnerLabResponse] | None = None
+    demo_response_profile: str = "conditional"
     input_guardrail: GuardrailVerdict | None = None
     route: RouteDecision | None = None
     evidence: EvidenceBundle | None = None
@@ -31,6 +36,7 @@ class WorkflowState:
     skill_gap_report: SkillGapReport | None = None
     study_plan: StudyPlan | None = None
     scenario_lab: ScenarioLab | None = None
+    lab_attempt: LabAttempt | None = None
     assessment_result: AssessmentResult | None = None
     manager_insight: ManagerInsight | None = None
     safety_response: SafetyResponse | None = None
@@ -51,9 +57,9 @@ class WorkflowState:
             skill_gap_report=self.skill_gap_report,
             study_plan=self.study_plan,
             scenario_lab=self.scenario_lab,
+            lab_attempt=self.lab_attempt,
             assessment_result=self.assessment_result,
             manager_insight=self.manager_insight,
             safety_response=self.safety_response,
             trace=self.trace,
         )
-

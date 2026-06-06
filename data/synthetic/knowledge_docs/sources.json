@@ -83,6 +83,44 @@
       "synthetic": "true",
       "notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data."
     }
+  },
+  {
+    "source_id": "SYN-PHISHING-LAB",
+    "title": "Synthetic Phishing Triage Lab",
+    "source_type": "synthetic_lab",
+    "url": null,
+    "summary": "A defensive phishing lab using fictional mail artifacts, blocked payload markers, and safe domains.",
+    "excerpt": "Synthetic phishing labs use fictional messages, safe domains, and blocked payloads to practice defensive triage.",
+    "tags": ["lab", "phishing", "mailbox", "triage", "reporting"],
+    "metadata": {
+      "synthetic": "true",
+      "notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data."
+    }
+  },
+  {
+    "source_id": "SYN-VULN-LAB",
+    "title": "Synthetic Vulnerability Prioritization Lab",
+    "source_type": "synthetic_lab",
+    "url": null,
+    "summary": "A defensive vulnerability-management lab using fictional finding identifiers and synthetic assets.",
+    "excerpt": "Synthetic vulnerability labs use fictional finding identifiers and asset names to practice defensive prioritization.",
+    "tags": ["lab", "vulnerability", "prioritization", "remediation", "risk"],
+    "metadata": {
+      "synthetic": "true",
+      "notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data."
+    }
+  },
+  {
+    "source_id": "SYN-KQL-LAB",
+    "title": "Synthetic KQL Interpretation Lab",
+    "source_type": "synthetic_lab",
+    "url": null,
+    "summary": "A defensive KQL interpretation lab with fictional logs and documentation-reserved network ranges.",
+    "excerpt": "Synthetic KQL labs teach query interpretation with fictional logs and documentation-reserved network ranges.",
+    "tags": ["lab", "kql", "logs", "signin", "interpretation"],
+    "metadata": {
+      "synthetic": "true",
+      "notice": "Synthetic demo content only. No real employee, customer, tenant, incident, or exam data."
+    }
   }
 ]
-

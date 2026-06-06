@@ -35,6 +35,7 @@ def test_soc_route_executes_expected_agents_in_order():
         "Skill Gap Analyst Agent",
         "Study Plan Generator Agent",
         "Scenario Lab Coach Agent",
+        "Lab Scoring Agent",
         "Assessment Agent",
         "Manager Insights Agent",
         "Verifier and Safety Agent",
@@ -129,4 +130,3 @@ def test_failed_repair_uses_safe_fallback_and_records_trace_issue():
     assert step.fallback_used is True
     assert state.fallback_flags == ["Invalid Route Agent"]
     assert "Repair failed" in (step.validation_error or "")
-
