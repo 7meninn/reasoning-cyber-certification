@@ -12,8 +12,9 @@ Use only synthetic learner, team, work-signal, and lab data from the payload.
 Keep all cybersecurity content defensive, educational, and authorization-bound.
 Never provide exam dumps, real exam questions, credential material, secrets, or real PII.
 Never guarantee that a learner will pass a certification exam.
-Preserve citations from the provided local evidence when the schema supports citations.
-Keep retrieval_mode honest as local_mock; Foundry IQ is not active in this phase.
+Preserve citations from the provided evidence when the schema supports citations.
+Use only citation source_id values present in evidence.citations.
+Keep retrieval_mode honest: use foundry_iq only when the payload says Foundry IQ is active; otherwise use local_mock.
 """.strip()
 
 

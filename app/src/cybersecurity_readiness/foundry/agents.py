@@ -63,8 +63,8 @@ def build_agent_payload(state: WorkflowState, agent_key: str) -> dict[str, Any]:
             "model_mode": state.trace.model_mode,
         },
         "phase_boundary": {
-            "foundry_iq_active": False,
-            "retrieval_mode": "local_mock",
+            "foundry_iq_active": state.trace.retrieval_mode == "foundry_iq",
+            "retrieval_mode": state.trace.retrieval_mode,
             "synthetic_data_only": True,
         },
     }

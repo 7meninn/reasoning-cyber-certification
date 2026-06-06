@@ -2,7 +2,9 @@ from cybersecurity_readiness.safety import (
     detect_real_pii,
     detect_secrets,
     evaluate_input_safety,
+    validate_citations_against_evidence,
 )
+from cybersecurity_readiness.schemas import Citation, EvidenceBundle
 
 
 def test_safety_blocks_exam_dump_requests():
@@ -38,3 +40,49 @@ def test_safety_allows_benign_defensive_learning():
 
     assert verdict.verdict == "allowed"
     assert verdict.issues == []
+
+
+def make_citation(source_id: str) -> Citation:
+    return Citation(
+        source_id=source_id,
+        title=f"{source_id} title",
+        source_type="synthetic_internal",
+        url=None,
+        excerpt=f"{source_id} excerpt",
+        metadata={"synthetic": "true"},
+    )
+
+
+def test_citation_grounding_allows_retrieved_sources():
+    citation = make_citation("SYN-SOC-GUIDE")
+    evidence = EvidenceBundle(
+        query="SOC analyst readiness",
+        sources=[citation],
+        snippets=[citation.excerpt],
+        citations=[citation],
+        retrieval_mode="foundry_iq",
+        confidence=0.9,
+    )
+
+    verdict = validate_citations_against_evidence([citation], evidence)
+
+    assert verdict.verdict == "allowed"
+    assert verdict.checks["citations_grounded_in_retrieval"] is True
+
+
+def test_citation_grounding_flags_sources_not_returned_by_retrieval():
+    retrieved = make_citation("SYN-SOC-GUIDE")
+    unsupported = make_citation("UNSUPPORTED-SOURCE")
+    evidence = EvidenceBundle(
+        query="SOC analyst readiness",
+        sources=[retrieved],
+        snippets=[retrieved.excerpt],
+        citations=[retrieved],
+        retrieval_mode="foundry_iq",
+        confidence=0.9,
+    )
+
+    verdict = validate_citations_against_evidence([unsupported], evidence)
+
+    assert verdict.verdict == "rewrite_required"
+    assert "UNSUPPORTED-SOURCE" in verdict.issues[0]

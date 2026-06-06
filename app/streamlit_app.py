@@ -77,11 +77,15 @@ with st.sidebar:
     st.divider()
     st.caption(f"Requested mode: {runtime_config.requested_mode}")
     st.caption(f"Execution mode: {runtime_config.effective_mode}")
-    st.caption("Retrieval: local_mock")
+    st.caption(f"Retrieval: {runtime_config.retrieval_mode}")
     if runtime_config.model_deployment:
         st.caption(f"Model deployment: {runtime_config.model_deployment}")
+    if runtime_config.foundry_iq_knowledge_base:
+        st.caption(f"Knowledge base: {runtime_config.foundry_iq_knowledge_base}")
     if runtime_config.fallback_reason:
         st.warning(runtime_config.fallback_reason)
+    elif runtime_config.foundry_iq_enabled:
+        st.success("Foundry IQ retrieval enabled")
     elif runtime_config.foundry_enabled:
         st.success("Foundry model calls enabled")
     else:
@@ -101,9 +105,9 @@ trace = result.trace
 
 st.title("SOC Readiness Command Center")
 st.caption(
-    "Phase 3 multi-agent SOC readiness demo. Mock mode is deterministic; Foundry mode "
-    "uses model-backed JSON agents with local mock retrieval. All data, users, teams, "
-    "logs, and incidents are synthetic."
+    "Phase 4 multi-agent SOC readiness demo. Mock mode is deterministic; Foundry mode "
+    "uses model-backed JSON agents. Foundry IQ mode adds live knowledge-base retrieval "
+    "with explicit local fallback. All data, users, teams, logs, and incidents are synthetic."
 )
 
 if result.safety_response is not None:
@@ -168,9 +172,15 @@ summary_cols[0].metric("Learner", learner.learner_id)
 summary_cols[1].metric("Target", learner.role_target)
 summary_cols[2].metric("Readiness", assessment.overall_readiness)
 summary_cols[3].metric("Trace latency", f"{trace.latency_ms} ms")
-st.caption(f"Mode: {trace.requested_app_mode} -> {trace.model_mode}; retrieval: {trace.retrieval_mode}")
+st.caption(
+    f"Mode: {trace.requested_app_mode} -> {trace.effective_app_mode}; "
+    f"model: {trace.model_mode}; retrieval: {trace.retrieval_mode}; "
+    f"citations: {len(trace.citations)}"
+)
 if trace.mode_fallback_reason:
     st.warning(trace.mode_fallback_reason)
+if trace.retrieval_fallback_reason:
+    st.warning(f"Retrieval fallback: {trace.retrieval_fallback_reason}")
 
 tabs = st.tabs(["Learner", "Path", "Skill Gaps", "Study Plan", "Scenario Lab", "Assessment", "Manager"])
 

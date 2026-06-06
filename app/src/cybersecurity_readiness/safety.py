@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 
-from .schemas import Citation, GuardrailVerdict, StudyPlan
+from .schemas import Citation, EvidenceBundle, GuardrailVerdict, StudyPlan
 
 
 EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})\b")
@@ -79,10 +79,45 @@ def validate_citations(citations: Sequence[Citation]) -> GuardrailVerdict:
     return GuardrailVerdict(verdict="allowed", issues=[], checks=checks)
 
 
+def validate_citations_against_evidence(
+    citations: Sequence[Citation],
+    evidence: EvidenceBundle | None,
+) -> GuardrailVerdict:
+    if evidence is None:
+        return GuardrailVerdict(
+            verdict="rewrite_required",
+            issues=["no_retrieved_evidence_available"],
+            rewrite_instructions="Use retrieved evidence before making citation-backed claims.",
+            checks={"citations_grounded_in_retrieval": False},
+        )
+
+    allowed = {citation.source_id for citation in evidence.citations}
+    cited = {citation.source_id for citation in citations}
+    unsupported = sorted(cited - allowed)
+    if unsupported:
+        return GuardrailVerdict(
+            verdict="rewrite_required",
+            issues=[f"unsupported_citations:{','.join(unsupported)}"],
+            rewrite_instructions="Use only citations returned by the retrieval adapter.",
+            checks={
+                "citations_grounded_in_retrieval": False,
+                "retrieved_citation_count": bool(allowed),
+            },
+        )
+    return GuardrailVerdict(
+        verdict="allowed",
+        issues=[],
+        rewrite_instructions=None,
+        checks={
+            "citations_grounded_in_retrieval": True,
+            "retrieved_citation_count": bool(allowed),
+        },
+    )
+
+
 def plan_fits_capacity(plan: StudyPlan) -> bool:
     return (
         plan.workload_fit.fit != "overloaded"
         and plan.workload_fit.planned_hours_per_week
         <= plan.workload_fit.available_focus_hours_per_week
     )
-

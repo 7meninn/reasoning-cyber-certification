@@ -139,7 +139,11 @@ class MockKnowledgeCuratorAgent(DeterministicMockAgent[EvidenceBundle]):
     output_schema = EvidenceBundle
     latency_ms = 842
 
-    def raw_response(self) -> str:
+    def raw_response(self, context: Any | None = None) -> str:
+        evidence = getattr(context, "evidence", None) if context is not None else None
+        if isinstance(evidence, EvidenceBundle):
+            return evidence.model_dump_json(indent=2)
+
         return dedent(
             """
             {

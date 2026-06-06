@@ -4,3 +4,4 @@ streamlit>=1.41,<2
 azure-ai-projects>=2.0.0,<3
 azure-identity>=1.17,<2
 openai>=1.42,<3
+requests>=2.32,<3

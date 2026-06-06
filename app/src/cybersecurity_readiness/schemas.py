@@ -68,6 +68,7 @@ class EvidenceBundle(StrictModel):
     retrieval_mode: Literal["foundry_iq", "azure_ai_search", "local_mock"]
     confidence: float = Field(ge=0, le=1)
     missing_evidence_warning: str | None = None
+    retrieval_metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class CertificationPath(StrictModel):
@@ -227,6 +228,15 @@ class ToolCall(StrictModel):
     input_summary: str
     output_summary: str
     latency_ms: int = Field(ge=0)
+    retrieval_provider: str | None = None
+    retrieval_mode: Literal["foundry_iq", "azure_ai_search", "local_mock"] | None = None
+    knowledge_base_name: str | None = None
+    source_count: int | None = Field(default=None, ge=0)
+    activity_summary: list[str] = Field(default_factory=list)
+    partial_content: bool = False
+    fallback_used: bool = False
+    fallback_reason: str | None = None
+    status_code: int | None = Field(default=None, ge=100, le=599)
 
 
 class AgentStep(StrictModel):
@@ -262,10 +272,13 @@ class RunTrace(StrictModel):
     latency_ms: int = Field(default=0, ge=0)
     retrieval_mode: Literal["foundry_iq", "azure_ai_search", "local_mock"] = "local_mock"
     fallback_mode: bool = True
-    requested_app_mode: Literal["mock", "foundry"] = "mock"
+    requested_app_mode: Literal["mock", "foundry", "foundry_iq"] = "mock"
+    effective_app_mode: Literal["mock", "foundry", "foundry_iq"] = "mock"
     model_mode: Literal["mock", "foundry"] = "mock"
     model_deployment: str | None = None
     mode_fallback_reason: str | None = None
+    knowledge_base_name: str | None = None
+    retrieval_fallback_reason: str | None = None
 
 
 class WorkflowResult(StrictModel):

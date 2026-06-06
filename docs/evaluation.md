@@ -1,13 +1,13 @@
 # Evaluation
 
-## Current Phase 3 Evidence
+## Current Phase 4 Evidence
 
-The Phase 3 implementation keeps deterministic mock mode as the default and adds optional Foundry-backed model agents behind fake-client-tested adapters. CI does not make live Azure calls.
+The Phase 4 implementation keeps deterministic mock mode as the default, preserves optional Foundry-backed model agents, and adds optional Foundry IQ retrieval behind fake-client-tested adapters. CI does not make live Azure calls.
 
 Current local test result:
 
 ```text
-31 passed
+42 passed
 ```
 
 ## What The Tests Cover
@@ -24,6 +24,10 @@ Current local test result:
 - Safety route that returns a structured defensive refusal.
 - Schema repair attempt and safe fallback when repair fails.
 - Runtime config tests for default mock mode, valid Foundry mode, missing Foundry env fallback, and unsupported mode fallback.
+- Runtime config tests for valid Foundry IQ mode and missing Foundry IQ env fallback.
+- Fake Foundry IQ retrieval tests for valid response mapping, partial content, empty citations, malformed response, auth failure, and timeout fallback.
+- Citation grounding tests proving agent citations can be checked against retrieved evidence.
+- Foundry IQ golden path using a fake adapter: route, live evidence, path, gaps, plan, lab, assessment, manager insight, and trace.
 - Fake Foundry client tests proving model-backed agents still return raw JSON strings and parse through Pydantic.
 - Foundry repair/fallback tests for invalid model JSON, failed repair, and auth/client exceptions.
 - Registry tests proving only the selected reasoning agents are model-backed in Foundry mode.
@@ -35,7 +39,8 @@ Current local test result:
 - The app serves HTTP 200 on `http://127.0.0.1:8501`.
 - The trace drawer exposes realistic latency values, guardrail verdicts, citations, raw JSON responses, and parsed schema outputs.
 - In Foundry mode, the trace also exposes model mode, deployment name, request id, token usage when available, and fallback reasons.
+- In Foundry IQ mode, the trace exposes retrieval provider, knowledge base name, source count, partial-content status, activity summaries when present, and local fallback reasons.
 
-## Known Phase 3 Boundary
+## Known Phase 4 Boundary
 
-Phase 3 can call a configured Foundry model deployment, but retrieval remains `local_mock`. It does not claim Foundry IQ, Azure AI Search, hosted Agent Framework, or production observability integration yet. Live Foundry acceptance is manual because CI must remain credential-free.
+Phase 4 can call a configured Foundry IQ-compatible Azure AI Search knowledge base, but live acceptance is manual because CI must remain credential-free. It does not claim direct raw index search, hosted Agent Framework, Foundry evaluations, or production observability integration yet.
