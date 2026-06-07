@@ -788,7 +788,7 @@ with tabs[7]:
     render_kicker("Reliability evidence")
     st.subheader("Evaluation Evidence")
     eval_cols = st.columns(4)
-    eval_cols[0].metric("Local tests", "65 passed")
+    eval_cols[0].metric("Local tests", "74 passed")
     eval_cols[1].metric("Eval cases", "25")
     eval_cols[2].metric("Overall", get_evaluation_status())
     eval_cols[3].metric("Cloud calls in CI", "0")

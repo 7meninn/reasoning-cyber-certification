@@ -1,0 +1,13 @@
+.git
+.github
+.venv
+.pytest_cache
+__pycache__
+*.pyc
+*.pyo
+*.log
+.env
+.streamlit
+app/eval/reports
+docs/assets
+plans

@@ -9,6 +9,7 @@ The submission app is a local multi-agent workflow with three execution modes:
 ```mermaid
 flowchart TD
     Streamlit["Streamlit Command Center"] --> Workflow["Orchestrated Workflow Runner"]
+    HostedApi["Hosted Agent API /invoke"] --> Workflow
     Workflow --> Guardrails["Input Safety Guardrails"]
     Workflow --> Router["Intake Router"]
     Router --> LearnerRoute["SOC Learner Route"]
@@ -37,9 +38,12 @@ flowchart TD
 9. Assessment consumes the parsed `LabAttempt` and adapts the readiness verdict and remediation sprint.
 10. The local evaluation runner executes synthetic JSONL cases against the public workflow in deterministic `mock` mode and computes judge-facing metrics.
 11. Streamlit renders the selected route and exposes `RunTrace` with raw JSON, parsed output, lab score, adaptive remediation reason, citations, guardrail verdicts, model metadata, retrieval metadata, repair/fallback metadata, route, fallback mode, and latency.
+12. The hosted-agent API exposes the same workflow through `GET /health` and `POST /invoke` for container packaging and optional Foundry Agent Service hosting.
 
 In `foundry` mode, Certification Path Advisor, Skill Gap Analyst, Study Plan Generator, Assessment, and Manager Insights use `FoundryBackedAgent`. The router, safety refusal, knowledge curator, scenario lab, and lab scoring remain deterministic for reliability and safety. Foundry calls are isolated behind `FoundryModelClient`, which uses Microsoft Entra ID and a Foundry project endpoint to obtain an OpenAI-compatible client.
 
 In `foundry_iq` mode, `FoundryIqRetrievalAdapter` calls the Azure AI Search knowledge base retrieve API with `DefaultAzureCredential`, normalizes returned response chunks and references into citations, and records activity/subquery summaries where present. If retrieval fails or returns no citations, the adapter returns local mock evidence and marks the fallback in both `EvidenceBundle.retrieval_metadata` and `RunTrace`.
 
 The submission still does not use direct raw index search, hosted Agent Framework, live Foundry evaluation runs in CI, or production observability services. It includes a Foundry-compatible evaluation dataset export and documentation for optional manual Foundry evaluation.
+
+The container image packages the custom workflow API but does not create Azure resources automatically. Foundry project, model deployment, Foundry IQ knowledge base, Azure Container Registry, and hosted-agent wiring remain explicit operator steps.

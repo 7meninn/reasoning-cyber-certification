@@ -4,7 +4,7 @@
 
 Judge-ready multi-agent SOC readiness demo for the Agents League Reasoning track.
 
-The submission keeps a deterministic local demo as the default, adds local evaluation evidence, and includes a Foundry-compatible eval export. By default the app runs in `mock` mode with `local_mock` retrieval and no Azure credentials. `APP_MODE=foundry` enables model-backed reasoning, and `APP_MODE=foundry_iq` keeps those model-backed agents while retrieving evidence from a Foundry IQ / Azure AI Search knowledge base.
+The submission keeps a deterministic local demo as the default, adds local evaluation evidence, includes a Foundry-compatible eval export, and now provides a hosted-agent container path. By default the app runs in `mock` mode with `local_mock` retrieval and no Azure credentials. `APP_MODE=foundry` enables model-backed reasoning, and `APP_MODE=foundry_iq` keeps those model-backed agents while retrieving evidence from a Foundry IQ / Azure AI Search knowledge base.
 
 ## Demo Story
 
@@ -28,6 +28,8 @@ Synthetic learner `L-1001` is a helpdesk analyst who wants to become a SOC analy
 - Deterministic local evaluation runner with 25 synthetic cases and a committed judge-facing report.
 - Foundry-compatible JSONL evaluation export for optional cloud evaluation.
 - Agent Trace expander with raw JSON responses, parsed outputs, citations, guardrail verdicts, model metadata, repair/fallback metadata, and realistic latency values.
+- Hosted-agent API with `GET /health` and `POST /invoke` for containerized deployment.
+- Docker and Azure Container Registry scripts for the optional Foundry Agent Service hosted-agent path.
 
 ## Judging Alignment
 
@@ -45,9 +47,13 @@ Synthetic learner `L-1001` is a helpdesk analyst who wants to become a SOC analy
 |---|---|
 | Repo link | `https://github.com/7meninn/reasoning-cyber-certification` |
 | Run demo | `.\scripts\run_demo.ps1` |
-| Run tests | `.\scripts\run_tests.ps1` -> `65 passed` |
+| Run tests | `.\scripts\run_tests.ps1` -> `74 passed` |
 | Run local eval | `.\scripts\run_eval.ps1` -> 25 cases, PASS |
 | Default mode | `mock` with `local_mock` retrieval, no Azure credentials |
+| Live config check | `.\scripts\check_live_foundry.ps1` |
+| Hosted API | `.\scripts\run_hosted_api.ps1 -Port 8000` |
+| Container image | `.\scripts\build_hosted_agent_image.ps1` |
+| Demo video | Record from `docs/demo-script.md`; upload link in hackathon portal |
 | Safety disclosure | Synthetic-only data, no real PII, no credentials, no real exam content |
 
 ## Run The Demo
@@ -100,6 +106,35 @@ $env:FOUNDRY_IQ_KNOWLEDGE_BASE="<knowledge-base-name>"
 
 Successful live retrieval is labeled `retrieval_mode = foundry_iq`. Any retrieval failure falls back visibly to `local_mock` while preserving the demo flow.
 
+For full setup details, see `docs/live-foundry-setup.md`.
+
+## Hosted Agent Container
+
+The Reasoning track starter guidance describes a hosted-agent pattern where custom agent code is packaged as a container image, pushed to Azure Container Registry, and connected to Foundry Agent Service. This repo includes that packaging path without putting credentials in the image.
+
+Run the local hosted-agent API:
+
+```powershell
+.\scripts\run_hosted_api.ps1 -Port 8000
+Invoke-RestMethod http://127.0.0.1:8000/health
+```
+
+Build and run the container:
+
+```powershell
+.\scripts\build_hosted_agent_image.ps1 -Tag v0.8.0-phase8
+.\scripts\run_hosted_agent_container.ps1 -Tag v0.8.0-phase8 -Port 8000 -Background
+```
+
+Push to Azure Container Registry:
+
+```powershell
+az login
+.\scripts\push_acr_image.ps1 -RegistryName <acr-name> -Tag v0.8.0-phase8
+```
+
+See `docs/hosted-agent-deployment.md` for the Foundry Agent Service connection story.
+
 ## Run Tests
 
 ```powershell
@@ -111,7 +146,7 @@ The test runner installs only backend test dependencies. The demo runner install
 Current local result:
 
 ```text
-65 passed
+74 passed
 ```
 
 ## Run Evaluation
@@ -174,8 +209,8 @@ The local evaluation runner executes deterministic `mock` mode only by default. 
 ```text
 app/                         Streamlit app, schemas, mock agents, orchestration, tests, eval cases
 data/synthetic/              Synthetic learners, teams, knowledge docs, and scenario labs
-docs/                        Architecture, data safety, demo script, evaluation notes
-scripts/                     One-command demo and test runners
+docs/                        Architecture, data safety, demo script, evaluation, live setup, hosting notes
+scripts/                     Demo, test, eval, live config, API, Docker, and ACR helpers
 ```
 
 ## Screenshots

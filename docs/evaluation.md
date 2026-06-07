@@ -7,7 +7,7 @@ The submission keeps deterministic mock mode as the default, preserves optional 
 Current local test result:
 
 ```text
-65 passed
+74 passed
 ```
 
 Current local evaluation result:
@@ -51,6 +51,8 @@ p95_trace_latency_ms: 9908 ms
 - Adapter tests proving the Foundry project OpenAI-compatible client receives the expected model deployment and response schema.
 - Eval dataset validation for 25 synthetic cases across learner, manager, lab, retrieval/citation, fallback, and safety categories.
 - Local eval runner tests proving deterministic metrics, threshold failure behavior, Markdown report content, and sanitized Foundry export.
+- Hosted-agent API tests for `GET /health`, `POST /invoke`, bad request validation, and mock-mode workflow output.
+- Packaging tests proving `.env.example`, Dockerfile, hosted-agent scripts, and live/hosted docs are present without committed secrets.
 
 ## Demo Acceptance Evidence
 
@@ -61,8 +63,9 @@ p95_trace_latency_ms: 9908 ms
 - In Foundry mode, the trace also exposes model mode, deployment name, request id, token usage when available, and fallback reasons.
 - In Foundry IQ mode, the trace exposes retrieval provider, knowledge base name, source count, partial-content status, activity summaries when present, and local fallback reasons.
 - `scripts/run_eval.ps1` produces a local report and Foundry-compatible JSONL export without cloud calls.
+- The hosted-agent API can be smoke-tested locally with `scripts/run_hosted_api.ps1` and containerized with the included Dockerfile.
 - `docs/evaluation-report.md` contains the committed judge-facing evaluation evidence.
 
 ## Known Submission Boundary
 
-The app can call a configured Foundry IQ-compatible Azure AI Search knowledge base during manual demo runs, but live acceptance is manual because CI must remain credential-free. It does not claim direct raw index search, hosted Agent Framework deployment, live Foundry evaluation execution in CI, or production observability integration yet.
+The app can call a configured Foundry IQ-compatible Azure AI Search knowledge base during manual demo runs, but live acceptance is manual because CI must remain credential-free. The repo now includes a container image and API surface for hosted-agent deployment, but Azure Container Registry, Foundry Agent Service wiring, live Foundry evaluation execution, and production observability remain manual/cloud-gated steps.
