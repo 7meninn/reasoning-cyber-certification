@@ -12,6 +12,8 @@ Guardrails cover:
 - Citation grounding checks against retrieved evidence.
 - Defensive-only lab framing.
 - Lab-response validation for unsafe text, real-looking PII, fake secrets, and invalid option references.
+- Local evaluation cases that exercise refusal behavior, citation coverage, grounding, fallback, manager privacy, and lab scoring.
+- Sanitized Foundry evaluation export for optional cloud evaluation.
 - Explicit fallback labeling when Foundry or Foundry IQ is unavailable.
 
 Blocked requests should be redirected to defensive, synthetic cybersecurity learning.

@@ -238,7 +238,16 @@ if trace.mode_fallback_reason:
 if trace.retrieval_fallback_reason:
     st.warning(f"Retrieval fallback: {trace.retrieval_fallback_reason}")
 
-tabs = st.tabs(["Learner", "Path", "Skill Gaps", "Study Plan", "Scenario Lab", "Assessment", "Manager"])
+tabs = st.tabs([
+    "Learner",
+    "Path",
+    "Skill Gaps",
+    "Study Plan",
+    "Scenario Lab",
+    "Assessment",
+    "Manager",
+    "Evaluation",
+])
 
 with tabs[0]:
     st.subheader("Learner Profile")
@@ -490,6 +499,14 @@ with tabs[6]:
     for action in manager.recommended_actions:
         st.write(f"- {action}")
     st.caption(manager.privacy_note)
+
+with tabs[7]:
+    st.subheader("Evaluation Evidence")
+    report_path = Path(__file__).resolve().parents[1] / "docs" / "evaluation-report.md"
+    if report_path.exists():
+        st.markdown(report_path.read_text(encoding="utf-8"))
+    else:
+        st.info("Run .\\scripts\\run_eval.ps1 to generate evaluation evidence.")
 
 with st.expander("Agent Trace", expanded=False):
     st.json(trace.model_dump(mode="json"))

@@ -4,7 +4,7 @@
 
 Multi-agent SOC readiness demo for the Agents League Reasoning track.
 
-Phase 5 adds interactive scenario labs and adaptive assessment while preserving the deterministic local demo. By default the app runs in `mock` mode with `local_mock` retrieval and no Azure credentials. `APP_MODE=foundry` enables model-backed reasoning, and `APP_MODE=foundry_iq` keeps those model-backed agents while retrieving evidence from a Foundry IQ / Azure AI Search knowledge base.
+Phase 6 adds local evaluation evidence and Foundry-compatible eval export while preserving the deterministic local demo. By default the app runs in `mock` mode with `local_mock` retrieval and no Azure credentials. `APP_MODE=foundry` enables model-backed reasoning, and `APP_MODE=foundry_iq` keeps those model-backed agents while retrieving evidence from a Foundry IQ / Azure AI Search knowledge base.
 
 ## Demo Story
 
@@ -25,6 +25,8 @@ Synthetic learner `L-1001` is a helpdesk analyst who wants to become a SOC analy
 - Synthetic data only: learners, teams, work signals, knowledge summaries, and SOC lab artifacts.
 - Local mock retrieval adapter with explicit `retrieval_mode = local_mock`.
 - Reset Demo button in the sidebar.
+- Deterministic local evaluation runner with 25 synthetic cases and a committed judge-facing report.
+- Foundry-compatible JSONL evaluation export for optional cloud evaluation.
 - Agent Trace expander with raw JSON responses, parsed outputs, citations, guardrail verdicts, model metadata, repair/fallback metadata, and realistic latency values.
 
 ## Judging Alignment
@@ -35,7 +37,7 @@ Synthetic learner `L-1001` is a helpdesk analyst who wants to become a SOC analy
 | Reasoning | Routed multi-agent path -> gap -> plan -> lab -> assessment -> remediation workflow |
 | Creativity | Cybersecurity readiness command center with interactive SOC labs |
 | UX and presentation | Streamlit demo, reset button, learner and manager views, visible trace drawer, mode badges |
-| Reliability and safety | Pydantic validation, tests, guardrails, synthetic-only data, Foundry/Foundry IQ fallback |
+| Reliability and safety | Pydantic validation, tests, eval report, guardrails, synthetic-only data, Foundry/Foundry IQ fallback |
 
 ## Run The Demo
 
@@ -98,10 +100,34 @@ The test runner installs only backend test dependencies. The demo runner install
 Current local result:
 
 ```text
-57 passed
+65 passed
 ```
 
-## Phase 5 Design Notes
+## Run Evaluation
+
+```powershell
+.\scripts\run_eval.ps1
+```
+
+Current local evaluation result:
+
+| Metric | Value | Threshold | Result |
+|---|---:|---:|---|
+| route_accuracy | 100% | 100% | PASS |
+| task_adherence | 100% | 100% | PASS |
+| safety_pass_rate | 100% | 100% | PASS |
+| citation_coverage | 100% | 100% | PASS |
+| grounded_citation_support | 100% | 100% | PASS |
+| manager_privacy_pass_rate | 100% | 100% | PASS |
+| capacity_fit_pass_rate | 100% | 100% | PASS |
+| lab_assessment_correctness | 100% | 100% | PASS |
+| fallback_success | 100% | 100% | PASS |
+| average_trace_latency_ms | 7403.36 ms | 11000 ms | PASS |
+| p95_trace_latency_ms | 9908.00 ms | 11000 ms | PASS |
+
+See `docs/evaluation-report.md` for the committed report and `docs/foundry-evaluation.md` for optional Foundry evaluation instructions.
+
+## Phase 6 Design Notes
 
 Mock agents intentionally return exact JSON strings, not Python dictionaries. The workflow parses those strings through Pydantic models before using the outputs. This proves schema validation, parsing errors, and trace capture before real LLM calls are introduced.
 
@@ -109,10 +135,12 @@ Foundry-backed agents use the same executor contract: raw JSON string first, the
 
 Lab generation and lab scoring remain deterministic in all modes for demo reliability. The assessment agent consumes the parsed `LabAttempt`, so custom learner answers visibly change the readiness result and remediation sprint without depending on a live model call.
 
+The local evaluation runner executes deterministic `mock` mode only by default. It measures route accuracy, task adherence, safety, citation coverage, grounded citation support, manager privacy, capacity fit, lab assessment correctness, fallback success, and trace latency. It does not make live Azure or Foundry calls.
+
 ## Repository Map
 
 ```text
-app/                         Streamlit app, schemas, mock agents, orchestration, tests
+app/                         Streamlit app, schemas, mock agents, orchestration, tests, eval cases
 data/synthetic/              Synthetic learners, teams, knowledge docs, and scenario labs
 docs/                        Architecture, data safety, demo script, evaluation notes
 scripts/                     One-command demo and test runners

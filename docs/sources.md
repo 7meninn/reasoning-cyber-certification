@@ -1,6 +1,6 @@
 # Sources and Foundry IQ Setup
 
-Phase 5 keeps all grounding data synthetic or public-summary only. The canonical local source list is:
+Phase 6 keeps all grounding data synthetic or public-summary only. The canonical local source list is:
 
 ```text
 data/synthetic/knowledge_docs/sources.json
@@ -40,13 +40,29 @@ $env:FOUNDRY_IQ_KNOWLEDGE_BASE="<knowledge-base-name>"
 
 The retrieval adapter calls the knowledge base retrieve API with Microsoft Entra ID credentials. If the live call fails, returns malformed data, or returns no citations, the app falls back to `local_mock` and records the reason in `RunTrace`.
 
-The Phase 5 lab catalog is stored in:
+The Phase 6 lab catalog is stored in:
 
 ```text
 data/synthetic/labs/
 ```
 
 Every lab is defensive-only, cites a `synthetic_lab` source, and is scored locally through Pydantic-validated JSON.
+
+## Evaluation Data
+
+Local deterministic evaluation cases are stored in:
+
+```text
+app/eval/cases.jsonl
+```
+
+The Foundry-compatible upload export is stored in:
+
+```text
+app/eval/foundry_dataset.jsonl
+```
+
+The Foundry export is sanitized so intentionally unsafe local eval strings do not carry fake secret-like values or real-looking email examples into the upload dataset.
 
 ## Safety Boundary
 

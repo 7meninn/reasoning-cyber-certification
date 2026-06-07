@@ -1,13 +1,26 @@
 # Evaluation
 
-## Current Phase 5 Evidence
+## Current Phase 6 Evidence
 
-The Phase 5 implementation keeps deterministic mock mode as the default, preserves optional Foundry-backed model agents and optional Foundry IQ retrieval, and adds interactive deterministic scenario labs with adaptive assessment. CI does not make live Azure calls.
+The Phase 6 implementation keeps deterministic mock mode as the default, preserves optional Foundry-backed model agents and optional Foundry IQ retrieval, and adds a local evaluation runner with a committed report. CI does not make live Azure calls.
 
 Current local test result:
 
 ```text
-57 passed
+65 passed
+```
+
+Current local evaluation result:
+
+```text
+25 eval cases, PASS
+route_accuracy: 100%
+task_adherence: 100%
+safety_pass_rate: 100%
+citation_coverage: 100%
+grounded_citation_support: 100%
+average_trace_latency_ms: 7403.36 ms
+p95_trace_latency_ms: 9908 ms
 ```
 
 ## What The Tests Cover
@@ -36,6 +49,8 @@ Current local test result:
 - Foundry repair/fallback tests for invalid model JSON, failed repair, and auth/client exceptions.
 - Registry tests proving only the selected reasoning agents are model-backed in Foundry mode.
 - Adapter tests proving the Foundry project OpenAI-compatible client receives the expected model deployment and response schema.
+- Eval dataset validation for 25 synthetic cases across learner, manager, lab, retrieval/citation, fallback, and safety categories.
+- Local eval runner tests proving deterministic metrics, threshold failure behavior, Markdown report content, and sanitized Foundry export.
 
 ## Demo Acceptance Evidence
 
@@ -45,7 +60,9 @@ Current local test result:
 - The lab tab supports demo answers and custom learner responses, and the trace records selected lab, lab score, and adaptive remediation reason.
 - In Foundry mode, the trace also exposes model mode, deployment name, request id, token usage when available, and fallback reasons.
 - In Foundry IQ mode, the trace exposes retrieval provider, knowledge base name, source count, partial-content status, activity summaries when present, and local fallback reasons.
+- `scripts/run_eval.ps1` produces a local report and Foundry-compatible JSONL export without cloud calls.
+- `docs/evaluation-report.md` contains the committed judge-facing evaluation evidence.
 
-## Known Phase 5 Boundary
+## Known Phase 6 Boundary
 
-Phase 5 can call a configured Foundry IQ-compatible Azure AI Search knowledge base, but live acceptance is manual because CI must remain credential-free. It does not claim direct raw index search, hosted Agent Framework, Foundry evaluations, or production observability integration yet.
+Phase 6 can call a configured Foundry IQ-compatible Azure AI Search knowledge base during manual demo runs, but live acceptance is manual because CI must remain credential-free. It does not claim direct raw index search, hosted Agent Framework deployment, live Foundry evaluation execution in CI, or production observability integration yet.
