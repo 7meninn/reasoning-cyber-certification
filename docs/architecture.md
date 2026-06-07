@@ -1,10 +1,30 @@
-# Phase 6 Architecture
+# Submission Architecture
 
-The Phase 6 app is a local multi-agent workflow with three execution modes:
+The submission app is a local multi-agent workflow with three execution modes:
 
 - `mock`: deterministic default mode with no cloud credentials.
 - `foundry`: optional model-backed mode for selected reasoning agents.
 - `foundry_iq`: model-backed mode plus live Foundry IQ / Azure AI Search knowledge base retrieval.
+
+```mermaid
+flowchart TD
+    Streamlit["Streamlit Command Center"] --> Workflow["Orchestrated Workflow Runner"]
+    Workflow --> Guardrails["Input Safety Guardrails"]
+    Workflow --> Router["Intake Router"]
+    Router --> LearnerRoute["SOC Learner Route"]
+    Router --> ManagerRoute["Manager Insight Route"]
+    Router --> SafetyRoute["Safety Refusal Route"]
+    LearnerRoute --> Curator["Knowledge Curator"]
+    Curator --> Retrieval["Local Mock or Foundry IQ Retrieval Adapter"]
+    Retrieval --> Evidence["EvidenceBundle and Citations"]
+    Evidence --> Reasoning["Path, Gap, Plan, Assessment Agents"]
+    Reasoning --> Lab["Interactive Lab and Deterministic Scoring"]
+    Lab --> ManagerInsight["Manager Insights"]
+    ManagerRoute --> ManagerInsight
+    SafetyRoute --> Trace["RunTrace"]
+    ManagerInsight --> Trace
+    Trace --> UI["Trace Drawer and Evaluation Tab"]
+```
 
 1. Streamlit collects the selected synthetic learner and demo request.
 2. `run_demo_workflow` loads runtime config and delegates to `OrchestratedWorkflowRunner`.
@@ -22,4 +42,4 @@ In `foundry` mode, Certification Path Advisor, Skill Gap Analyst, Study Plan Gen
 
 In `foundry_iq` mode, `FoundryIqRetrievalAdapter` calls the Azure AI Search knowledge base retrieve API with `DefaultAzureCredential`, normalizes returned response chunks and references into citations, and records activity/subquery summaries where present. If retrieval fails or returns no citations, the adapter returns local mock evidence and marks the fallback in both `EvidenceBundle.retrieval_metadata` and `RunTrace`.
 
-Phase 6 still does not use direct raw index search, hosted Agent Framework, live Foundry evaluation runs in CI, or production observability services. It includes a Foundry-compatible evaluation dataset export and documentation for optional manual Foundry evaluation.
+The submission still does not use direct raw index search, hosted Agent Framework, live Foundry evaluation runs in CI, or production observability services. It includes a Foundry-compatible evaluation dataset export and documentation for optional manual Foundry evaluation.

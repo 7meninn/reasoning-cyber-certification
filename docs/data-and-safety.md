@@ -2,6 +2,8 @@
 
 All demo content is synthetic or short public-source summary text. Data files use IDs such as `L-1001`, `EMP-001`, and `TEAM-SOC-A`. Lab artifacts use `example.com` accounts, documentation-reserved IP ranges, and synthetic vulnerability IDs such as `SYN-VULN-2026-014`.
 
+Submission screenshots and documentation are captured from the same synthetic local demo. They must not include real tenant names, real users, real IPs outside documentation-reserved ranges, credentials, secrets, or real exam questions.
+
 Guardrails cover:
 
 - Real-looking email or PII detection.

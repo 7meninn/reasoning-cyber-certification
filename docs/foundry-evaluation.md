@@ -1,6 +1,6 @@
 # Optional Foundry Evaluation
 
-Phase 6 is credential-free by default. The local runner produces deterministic evidence, while `app/eval/foundry_dataset.jsonl` is ready to upload into Microsoft Foundry for optional cloud evaluation.
+The submission is credential-free by default. The local runner produces deterministic evidence, while `app/eval/foundry_dataset.jsonl` is ready to upload into Microsoft Foundry for optional cloud evaluation.
 
 ## Dataset
 

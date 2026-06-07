@@ -1,8 +1,8 @@
 # Evaluation
 
-## Current Phase 6 Evidence
+## Current Submission Evidence
 
-The Phase 6 implementation keeps deterministic mock mode as the default, preserves optional Foundry-backed model agents and optional Foundry IQ retrieval, and adds a local evaluation runner with a committed report. CI does not make live Azure calls.
+The submission keeps deterministic mock mode as the default, preserves optional Foundry-backed model agents and optional Foundry IQ retrieval, and includes a local evaluation runner with a committed report. CI does not make live Azure calls.
 
 Current local test result:
 
@@ -63,6 +63,6 @@ p95_trace_latency_ms: 9908 ms
 - `scripts/run_eval.ps1` produces a local report and Foundry-compatible JSONL export without cloud calls.
 - `docs/evaluation-report.md` contains the committed judge-facing evaluation evidence.
 
-## Known Phase 6 Boundary
+## Known Submission Boundary
 
-Phase 6 can call a configured Foundry IQ-compatible Azure AI Search knowledge base during manual demo runs, but live acceptance is manual because CI must remain credential-free. It does not claim direct raw index search, hosted Agent Framework deployment, live Foundry evaluation execution in CI, or production observability integration yet.
+The app can call a configured Foundry IQ-compatible Azure AI Search knowledge base during manual demo runs, but live acceptance is manual because CI must remain credential-free. It does not claim direct raw index search, hosted Agent Framework deployment, live Foundry evaluation execution in CI, or production observability integration yet.

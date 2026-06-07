@@ -1,6 +1,6 @@
 # Sources and Foundry IQ Setup
 
-Phase 6 keeps all grounding data synthetic or public-summary only. The canonical local source list is:
+The submission keeps all grounding data synthetic or public-summary only. The canonical local source list is:
 
 ```text
 data/synthetic/knowledge_docs/sources.json
@@ -40,7 +40,7 @@ $env:FOUNDRY_IQ_KNOWLEDGE_BASE="<knowledge-base-name>"
 
 The retrieval adapter calls the knowledge base retrieve API with Microsoft Entra ID credentials. If the live call fails, returns malformed data, or returns no citations, the app falls back to `local_mock` and records the reason in `RunTrace`.
 
-The Phase 6 lab catalog is stored in:
+The submission lab catalog is stored in:
 
 ```text
 data/synthetic/labs/

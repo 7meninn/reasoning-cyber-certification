@@ -2,9 +2,9 @@
 
 [![Tests](https://github.com/7meninn/reasoning-cyber-certification/actions/workflows/tests.yml/badge.svg)](https://github.com/7meninn/reasoning-cyber-certification/actions/workflows/tests.yml)
 
-Multi-agent SOC readiness demo for the Agents League Reasoning track.
+Judge-ready multi-agent SOC readiness demo for the Agents League Reasoning track.
 
-Phase 6 adds local evaluation evidence and Foundry-compatible eval export while preserving the deterministic local demo. By default the app runs in `mock` mode with `local_mock` retrieval and no Azure credentials. `APP_MODE=foundry` enables model-backed reasoning, and `APP_MODE=foundry_iq` keeps those model-backed agents while retrieving evidence from a Foundry IQ / Azure AI Search knowledge base.
+The submission keeps a deterministic local demo as the default, adds local evaluation evidence, and includes a Foundry-compatible eval export. By default the app runs in `mock` mode with `local_mock` retrieval and no Azure credentials. `APP_MODE=foundry` enables model-backed reasoning, and `APP_MODE=foundry_iq` keeps those model-backed agents while retrieving evidence from a Foundry IQ / Azure AI Search knowledge base.
 
 ## Demo Story
 
@@ -38,6 +38,17 @@ Synthetic learner `L-1001` is a helpdesk analyst who wants to become a SOC analy
 | Creativity | Cybersecurity readiness command center with interactive SOC labs |
 | UX and presentation | Streamlit demo, reset button, learner and manager views, visible trace drawer, mode badges |
 | Reliability and safety | Pydantic validation, tests, eval report, guardrails, synthetic-only data, Foundry/Foundry IQ fallback |
+
+## Submission Checklist
+
+| Item | Command or evidence |
+|---|---|
+| Repo link | `https://github.com/7meninn/reasoning-cyber-certification` |
+| Run demo | `.\scripts\run_demo.ps1` |
+| Run tests | `.\scripts\run_tests.ps1` -> `65 passed` |
+| Run local eval | `.\scripts\run_eval.ps1` -> 25 cases, PASS |
+| Default mode | `mock` with `local_mock` retrieval, no Azure credentials |
+| Safety disclosure | Synthetic-only data, no real PII, no credentials, no real exam content |
 
 ## Run The Demo
 
@@ -127,7 +138,28 @@ Current local evaluation result:
 
 See `docs/evaluation-report.md` for the committed report and `docs/foundry-evaluation.md` for optional Foundry evaluation instructions.
 
-## Phase 6 Design Notes
+## Architecture
+
+```mermaid
+flowchart LR
+    UI["Streamlit Command Center"] --> WF["Orchestrated Workflow Runner"]
+    WF --> Safety["Safety Guardrails"]
+    WF --> Router["Intake Router"]
+    Router --> Learner["Learner SOC Route"]
+    Router --> Manager["Manager Insight Route"]
+    Router --> Refusal["Safety Refusal Route"]
+    Learner --> Retrieval["Knowledge Curator / Retrieval Adapter"]
+    Retrieval --> Evidence["EvidenceBundle with citations"]
+    Evidence --> Agents["Path, Gaps, Plan, Assessment, Manager Agents"]
+    Agents --> Lab["Interactive Scenario Lab Scoring"]
+    Lab --> Trace["RunTrace and Evaluation Evidence"]
+    Manager --> Trace
+    Refusal --> Trace
+```
+
+See `docs/architecture.md` for the detailed mode and fallback boundaries.
+
+## Design Notes
 
 Mock agents intentionally return exact JSON strings, not Python dictionaries. The workflow parses those strings through Pydantic models before using the outputs. This proves schema validation, parsing errors, and trace capture before real LLM calls are introduced.
 
@@ -146,9 +178,15 @@ docs/                        Architecture, data safety, demo script, evaluation 
 scripts/                     One-command demo and test runners
 ```
 
-## Trace Screenshot Placeholder
+## Screenshots
 
-The `Agent Trace` expander is available in the running Streamlit app and shows raw JSON responses, parsed outputs, lab score, selected lab, adaptive remediation reason, citations, guardrail verdicts, model metadata, retrieval provider, knowledge base name, repair/fallback metadata, route, fallback mode, and latency. Screenshots can be added after submission without changing the runnable demo.
+![Main dashboard](docs/assets/dashboard.png)
+![Scenario lab](docs/assets/scenario-lab.png)
+![Manager dashboard](docs/assets/manager.png)
+![Evaluation evidence](docs/assets/evaluation.png)
+![Agent trace](docs/assets/agent-trace.png)
+
+The `Agent Trace` expander shows raw JSON responses, parsed outputs, lab score, selected lab, adaptive remediation reason, citations, guardrail verdicts, model metadata, retrieval provider, knowledge base name, repair/fallback metadata, route, fallback mode, and latency.
 
 ## Synthetic Data Statement
 
