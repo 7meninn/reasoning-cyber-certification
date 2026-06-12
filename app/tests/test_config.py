@@ -1,4 +1,4 @@
-from cybersecurity_readiness.config import load_runtime_config
+from cybersecurity_readiness.config import _load_env_file, load_runtime_config
 
 
 def test_config_defaults_to_mock_mode():
@@ -82,3 +82,40 @@ def test_config_falls_back_to_mock_for_unsupported_mode():
     assert config.requested_mode == "mock"
     assert config.effective_mode == "mock"
     assert "Unsupported APP_MODE" in (config.fallback_reason or "")
+
+
+def test_config_reads_dotenv_style_files(tmp_path):
+    dotenv = tmp_path / ".env"
+    dotenv.write_text(
+        "\n".join(
+            [
+                "# local only",
+                'APP_MODE="foundry"',
+                "AZURE_AI_PROJECT_ENDPOINT=https://demo.services.ai.azure.com/api/projects/readiness",
+                "AZURE_AI_MODEL_DEPLOYMENT=gpt-5.2",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    env = _load_env_file(dotenv)
+    config = load_runtime_config(env)
+
+    assert config.requested_mode == "foundry"
+    assert config.effective_mode == "foundry"
+    assert config.model_deployment == "gpt-5.2"
+
+
+def test_config_treats_placeholder_values_as_missing():
+    config = load_runtime_config(
+        {
+            "APP_MODE": "foundry",
+            "AZURE_AI_PROJECT_ENDPOINT": "https://<resource>.services.ai.azure.com/api/projects/<project>",
+            "AZURE_AI_MODEL_DEPLOYMENT": "<deployment-name>",
+        }
+    )
+
+    assert config.requested_mode == "foundry"
+    assert config.effective_mode == "mock"
+    assert "AZURE_AI_PROJECT_ENDPOINT" in (config.fallback_reason or "")
+    assert "AZURE_AI_MODEL_DEPLOYMENT" in (config.fallback_reason or "")

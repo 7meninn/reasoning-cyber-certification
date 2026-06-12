@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 
@@ -34,6 +35,7 @@ def test_dockerfile_packages_hosted_api_without_secrets():
 def test_phase8_scripts_are_present():
     for script_name in [
         "check_live_foundry.ps1",
+        "export_knowledge_docs.ps1",
         "run_hosted_api.ps1",
         "build_hosted_agent_image.ps1",
         "run_hosted_agent_container.ps1",
@@ -53,3 +55,32 @@ def test_phase8_docs_cover_live_and_hosted_paths():
     assert "Azure Container Registry" in hosted_doc
     assert "POST /invoke" in hosted_doc
     assert "Do not bake secrets into the image" in hosted_doc
+
+
+def test_foundry_iq_upload_pack_matches_canonical_sources():
+    sources = json.loads(
+        (PROJECT_ROOT / "data" / "synthetic" / "knowledge_docs" / "sources.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest = json.loads(
+        (
+            PROJECT_ROOT
+            / "data"
+            / "synthetic"
+            / "knowledge_docs"
+            / "upload"
+            / "_manifest.json"
+        ).read_text(encoding="utf-8")
+    )
+
+    source_ids = {source["source_id"] for source in sources}
+    manifest_ids = {entry["source_id"] for entry in manifest}
+    assert manifest_ids == source_ids
+
+    for entry in manifest:
+        doc_path = PROJECT_ROOT / entry["file"]
+        assert doc_path.exists()
+        text = doc_path.read_text(encoding="utf-8")
+        assert f"Source ID: {entry['source_id']}" in text
+        assert "## Safety Boundary" in text

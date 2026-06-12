@@ -26,7 +26,7 @@ az account show
 4. Copy the project endpoint and deployment name.
 5. Assign your signed-in identity access to the project and model deployment.
 
-Set local environment variables:
+Set local environment variables directly, or copy `.env.example` to `.env` and fill in the non-secret values. The app loads `.env` automatically, and direct process environment variables override `.env` for one-off runs.
 
 ```powershell
 $env:APP_MODE="foundry"
@@ -40,9 +40,17 @@ $env:AZURE_AI_MODEL_DEPLOYMENT="<deployment-name>"
 
 1. Create an Azure AI Search service compatible with Foundry IQ knowledge bases.
 2. Create a Foundry IQ knowledge base connected to that Search service.
-3. Import only synthetic or public-summary sources from `data/synthetic/knowledge_docs/sources.json`.
+3. Import only synthetic or public-summary Markdown files from `data/synthetic/knowledge_docs/upload/`.
 4. Preserve source IDs, titles, URLs, snippets, and public/synthetic labels so citations remain meaningful.
 5. Assign your identity permission to query the knowledge base.
+
+If the Markdown upload pack is missing, regenerate it from the canonical JSON source list:
+
+```powershell
+.\scripts\export_knowledge_docs.ps1
+```
+
+The upload pack includes 10 small documents and a `_manifest.json` mapping each file to its source ID.
 
 Set Foundry IQ variables:
 

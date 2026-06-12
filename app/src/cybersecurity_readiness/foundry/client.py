@@ -65,10 +65,10 @@ class FoundryModelClient:
                 else nullcontext(openai_client)
             )
             with context_manager as client:
-                completion = client.beta.chat.completions.parse(
+                completion = client.chat.completions.create(
                     model=self.config.azure_ai_model_deployment,
                     messages=messages,
-                    response_format=output_schema,
+                    response_format={"type": "json_object"},
                     temperature=0.1,
                 )
         except Exception as exc:  # pragma: no cover - exercised with fake clients.

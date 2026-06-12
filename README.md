@@ -47,7 +47,7 @@ Synthetic learner `L-1001` is a helpdesk analyst who wants to become a SOC analy
 |---|---|
 | Repo link | `https://github.com/7meninn/reasoning-cyber-certification` |
 | Run demo | `.\scripts\run_demo.ps1` |
-| Run tests | `.\scripts\run_tests.ps1` -> `74 passed` |
+| Run tests | `.\scripts\run_tests.ps1` -> `77 passed` |
 | Run local eval | `.\scripts\run_eval.ps1` -> 25 cases, PASS |
 | Default mode | `mock` with `local_mock` retrieval, no Azure credentials |
 | Live config check | `.\scripts\check_live_foundry.ps1` |
@@ -88,11 +88,19 @@ $env:AZURE_AI_MODEL_DEPLOYMENT="<deployment-name>"
 .\scripts\run_demo.ps1
 ```
 
+You can also copy `.env.example` to `.env`; the app loads `.env` automatically, while direct `$env:` values override it for the current PowerShell session.
+
 If Foundry config or credentials are missing, the app falls back to deterministic mock mode and records the fallback reason in the trace.
 
 ## Optional Foundry IQ Mode
 
-To try live grounding, create a Foundry IQ-compatible Azure AI Search knowledge base from the synthetic sources in `data/synthetic/knowledge_docs/sources.json`, then run:
+To try live grounding, create a Foundry IQ-compatible Azure AI Search knowledge base from the synthetic Markdown sources in `data/synthetic/knowledge_docs/upload/`. Regenerate them any time from the canonical JSON source list:
+
+```powershell
+.\scripts\export_knowledge_docs.ps1
+```
+
+Then run:
 
 ```powershell
 az login
@@ -146,7 +154,7 @@ The test runner installs only backend test dependencies. The demo runner install
 Current local result:
 
 ```text
-74 passed
+77 passed
 ```
 
 ## Run Evaluation

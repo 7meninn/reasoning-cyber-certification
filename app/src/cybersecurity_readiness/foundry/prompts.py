@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 
 from pydantic import BaseModel
@@ -24,12 +25,15 @@ class AgentPrompt:
     task: str
 
     def render(self, schema: type[BaseModel]) -> str:
+        schema_json = json.dumps(schema.model_json_schema(), sort_keys=True)
         return "\n\n".join(
             [
                 BASE_GUARDRAILS,
                 f"Agent role: {self.role}",
                 f"Task: {self.task}",
                 f"Output schema name: {schema.__name__}",
+                "Output JSON schema:",
+                schema_json,
             ]
         )
 
@@ -82,6 +86,7 @@ def get_prompt(agent_key: str) -> AgentPrompt:
 
 
 def render_repair_prompt(agent_name: str, schema: type[BaseModel]) -> str:
+    schema_json = json.dumps(schema.model_json_schema(), sort_keys=True)
     return "\n\n".join(
         [
             BASE_GUARDRAILS,
@@ -91,5 +96,7 @@ def render_repair_prompt(agent_name: str, schema: type[BaseModel]) -> str:
                 "Preserve the intent and citations when possible, but return only "
                 f"valid JSON for schema {schema.__name__}."
             ),
+            "Output JSON schema:",
+            schema_json,
         ]
     )

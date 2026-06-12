@@ -1,0 +1,42 @@
+[
+    {
+        "source_id":  "OFFICIAL-SC200",
+        "file":  "data\\synthetic\\knowledge_docs\\upload\\official-sc200-microsoft-sc-200-certification-overview.md"
+    },
+    {
+        "source_id":  "OFFICIAL-SECURITYPLUS",
+        "file":  "data\\synthetic\\knowledge_docs\\upload\\official-securityplus-comptia-security-public-certification-page.md"
+    },
+    {
+        "source_id":  "SYN-SOC-GUIDE",
+        "file":  "data\\synthetic\\knowledge_docs\\upload\\syn-soc-guide-synthetic-soc-analyst-enablement-guide.md"
+    },
+    {
+        "source_id":  "SYN-TRIAGE-PLAYBOOK",
+        "file":  "data\\synthetic\\knowledge_docs\\upload\\syn-triage-playbook-synthetic-incident-triage-playbook.md"
+    },
+    {
+        "source_id":  "SYN-WORK-CAPACITY",
+        "file":  "data\\synthetic\\knowledge_docs\\upload\\syn-work-capacity-synthetic-team-learning-capacity-report.md"
+    },
+    {
+        "source_id":  "SYN-MANAGER-BRIEF",
+        "file":  "data\\synthetic\\knowledge_docs\\upload\\syn-manager-brief-synthetic-manager-readiness-dashboard-brief.md"
+    },
+    {
+        "source_id":  "SYN-SIGNIN-LAB",
+        "file":  "data\\synthetic\\knowledge_docs\\upload\\syn-signin-lab-synthetic-suspicious-sign-in-lab.md"
+    },
+    {
+        "source_id":  "SYN-PHISHING-LAB",
+        "file":  "data\\synthetic\\knowledge_docs\\upload\\syn-phishing-lab-synthetic-phishing-triage-lab.md"
+    },
+    {
+        "source_id":  "SYN-VULN-LAB",
+        "file":  "data\\synthetic\\knowledge_docs\\upload\\syn-vuln-lab-synthetic-vulnerability-prioritization-lab.md"
+    },
+    {
+        "source_id":  "SYN-KQL-LAB",
+        "file":  "data\\synthetic\\knowledge_docs\\upload\\syn-kql-lab-synthetic-kql-interpretation-lab.md"
+    }
+]

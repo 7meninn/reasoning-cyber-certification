@@ -6,6 +6,18 @@ The submission keeps all grounding data synthetic or public-summary only. The ca
 data/synthetic/knowledge_docs/sources.json
 ```
 
+Upload-ready Markdown files are generated from that source list and committed here:
+
+```text
+data/synthetic/knowledge_docs/upload/
+```
+
+To regenerate the Markdown pack:
+
+```powershell
+.\scripts\export_knowledge_docs.ps1
+```
+
 ## Source Types
 
 - `official_public_summary`: short public summaries and links for certification pages such as Microsoft SC-200 and CompTIA Security+.
@@ -15,7 +27,7 @@ data/synthetic/knowledge_docs/sources.json
 
 ## Foundry IQ Knowledge Base
 
-Use the JSON source list to create or seed a Foundry IQ-compatible Azure AI Search knowledge base. Each source should preserve:
+Use the Markdown files in `data/synthetic/knowledge_docs/upload/` to create or seed a Foundry IQ-compatible Azure AI Search knowledge base. The `_manifest.json` file maps upload files back to the canonical source IDs. Each source should preserve:
 
 - `source_id`
 - `title`

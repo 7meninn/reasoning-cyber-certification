@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from os import environ
+from pathlib import Path
 from typing import Literal, Mapping
 
 
@@ -14,13 +15,41 @@ DEFAULT_FOUNDRY_IQ_API_VERSION = "2026-05-01-preview"
 DEFAULT_FOUNDRY_IQ_MAX_DOCS = 8
 DEFAULT_FOUNDRY_IQ_MAX_OUTPUT_TOKENS = 4096
 VALID_APP_MODES: tuple[AppMode, ...] = ("mock", "foundry", "foundry_iq")
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_ENV_FILE = PROJECT_ROOT / ".env"
 
 
 def _clean(value: str | None) -> str | None:
     if value is None:
         return None
     cleaned = value.strip()
+    if "<" in cleaned and ">" in cleaned:
+        return None
     return cleaned or None
+
+
+def _load_env_file(path: Path = DEFAULT_ENV_FILE) -> dict[str, str]:
+    if not path.exists():
+        return {}
+
+    values: dict[str, str] = {}
+    for raw_line in path.read_text(encoding="utf-8-sig").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export ") :].strip()
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if not key:
+            continue
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+            value = value[1:-1]
+        values[key] = value
+    return values
 
 
 @dataclass(frozen=True)
@@ -65,7 +94,10 @@ class RuntimeConfig:
 
 
 def load_runtime_config(env: Mapping[str, str] | None = None) -> RuntimeConfig:
-    source = environ if env is None else env
+    if env is None:
+        source = {**_load_env_file(), **environ}
+    else:
+        source = env
     raw_mode = _clean(source.get("APP_MODE")) or "mock"
     normalized_mode = raw_mode.lower()
     fallback_reason: str | None = None

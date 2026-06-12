@@ -222,7 +222,7 @@ class FakeCompletions:
     def __init__(self) -> None:
         self.kwargs: dict[str, Any] | None = None
 
-    def parse(self, **kwargs: Any) -> FakeCompletion:
+    def create(self, **kwargs: Any) -> FakeCompletion:
         self.kwargs = kwargs
         return FakeCompletion()
 
@@ -231,16 +231,10 @@ class FakeOpenAIClient:
     def __init__(self) -> None:
         completions = FakeCompletions()
         self.fake_completions = completions
-        self.beta = type(
-            "Beta",
+        self.chat = type(
+            "Chat",
             (),
-            {
-                "chat": type(
-                    "Chat",
-                    (),
-                    {"completions": completions},
-                )()
-            },
+            {"completions": completions},
         )()
 
 
@@ -272,4 +266,5 @@ def test_foundry_model_client_uses_project_openai_client_and_schema_format():
     assert response.token_usage == {"prompt_tokens": 2, "completion_tokens": 3, "total_tokens": 5}
     assert kwargs is not None
     assert kwargs["model"] == "gpt-4o-mini"
-    assert kwargs["response_format"] is ManagerInsight
+    assert kwargs["response_format"] == {"type": "json_object"}
+    assert kwargs["messages"][0]["content"] == "Return JSON."
