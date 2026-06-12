@@ -138,8 +138,7 @@ class RequestsKnowledgeBaseRetrievalClient:
                     "content": [{"type": "text", "text": query}],
                 }
             ],
-            "maxOutputSize": max_output_tokens,
-            "top": max_docs,
+            "includeActivity": True,
         }
         start = perf_counter()
         try:
